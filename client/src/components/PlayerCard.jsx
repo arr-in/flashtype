@@ -12,6 +12,7 @@ function PlayerCard({ player, highlighted = false }) {
       <div>{placementLabel(player.placement)}</div>
       <div>WPM: {player.wpm}</div>
       <div>Accuracy: {player.accuracy}%</div>
+      {typeof player.score === "number" && <div>Score: {player.score}</div>}
       <div>Time: {player.timeMs ? `${(player.timeMs / 1000).toFixed(2)}s` : "DNF"}</div>
     </div>
   );

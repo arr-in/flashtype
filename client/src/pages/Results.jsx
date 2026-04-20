@@ -16,9 +16,10 @@ function Results() {
 
   const soloMeta = useMemo(() => {
     if (mode !== "solo" || !state.difficulty) return null;
-    const key = `flashType_best_${state.difficulty}`;
-    return { difficulty: state.difficulty, personalBest: Number(localStorage.getItem(key) || 0) };
-  }, [mode, state.difficulty]);
+    const timer = state.timeLimit || 60;
+    const key = `flashType_best_${state.difficulty}_${timer}s`;
+    return { difficulty: state.difficulty, timeLimit: timer, personalBest: Number(localStorage.getItem(key) || 0) };
+  }, [mode, state.difficulty, state.timeLimit]);
 
   function backHome() {
     navigate("/");
@@ -37,6 +38,7 @@ function Results() {
       {soloMeta && (
         <div className="panel">
           <p>Difficulty: {soloMeta.difficulty}</p>
+          <p>Timer: {soloMeta.timeLimit}s</p>
           <p>Personal Best: {soloMeta.personalBest} WPM</p>
         </div>
       )}

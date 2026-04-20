@@ -52,7 +52,7 @@ function getRandomTextByDifficulty(difficulty = "medium") {
 }
 
 function applyRaceFilters(text, options = {}) {
-  const { includeNumbers = true, includeSymbols = true } = options;
+  const { includeNumbers = true, includeSymbols = true, allowCaps = true } = options;
   let output = String(text || "");
 
   if (!includeNumbers) {
@@ -63,14 +63,46 @@ function applyRaceFilters(text, options = {}) {
     output = output.replace(/[^A-Za-z0-9\s]/g, "");
   }
 
+  if (!allowCaps) {
+    output = output.toLowerCase();
+  }
+
   return output.replace(/\s+/g, " ").trim();
+}
+
+function targetWordsByLength(length = "medium") {
+  if (length === "short") return 35;
+  if (length === "long") return 80;
+  return 55;
+}
+
+function applyWordLength(text, options = {}) {
+  const targetWords = targetWordsByLength(options.wordLength);
+  const words = String(text || "")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter(Boolean);
+
+  if (words.length === 0) return "";
+  if (words.length >= targetWords) return words.slice(0, targetWords).join(" ");
+
+  const output = [...words];
+  while (output.length < targetWords) {
+    const randomWord = words[Math.floor(Math.random() * words.length)];
+    output.push(randomWord);
+  }
+  return output.join(" ");
 }
 
 function getRandomRaceText(options = {}) {
   const difficulty = options.difficulty || "hard";
-  const baseText = getRandomTextByDifficulty(difficulty);
-  const filtered = applyRaceFilters(baseText, options);
-  return filtered.length > 20 ? filtered : baseText;
+  const candidateTexts = textBank[difficultyMap[String(difficulty).toLowerCase()] || "Medium"];
+  const filteredPool = candidateTexts
+    .map((entry) => applyRaceFilters(entry, options))
+    .filter((entry) => entry.length > 10);
+
+  const selected = filteredPool[Math.floor(Math.random() * filteredPool.length)] || "typing practice text";
+  return applyWordLength(selected, options);
 }
 
 module.exports = {

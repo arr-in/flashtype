@@ -15,7 +15,9 @@ function Lobby() {
   const [raceSettings, setRaceSettings] = useState({
     difficulty: "hard",
     includeNumbers: true,
-    includeSymbols: true
+    includeSymbols: true,
+    allowCaps: true,
+    wordLength: "medium"
   });
 
   useEffect(() => {
@@ -187,6 +189,23 @@ function Lobby() {
                 </select>
               </div>
               <div className="settings-row">
+                <label htmlFor="wordLength">Word count</label>
+                <select
+                  id="wordLength"
+                  value={raceSettings.wordLength}
+                  onChange={(e) =>
+                    setRaceSettings((prev) => ({
+                      ...prev,
+                      wordLength: e.target.value
+                    }))
+                  }
+                >
+                  <option value="short">Short</option>
+                  <option value="medium">Medium</option>
+                  <option value="long">Long</option>
+                </select>
+              </div>
+              <div className="settings-row">
                 <label>
                   <input
                     type="checkbox"
@@ -212,6 +231,19 @@ function Lobby() {
                     }
                   />
                   Include special characters
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={raceSettings.allowCaps}
+                    onChange={(e) =>
+                      setRaceSettings((prev) => ({
+                        ...prev,
+                        allowCaps: e.target.checked
+                      }))
+                    }
+                  />
+                  Allow capitals
                 </label>
               </div>
               <button type="button" onClick={startRace} disabled={players.length < 2}>

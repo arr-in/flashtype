@@ -39,7 +39,9 @@ function createRoom(hostUsername, hostSocketId) {
     settings: {
       difficulty: "hard",
       includeNumbers: true,
-      includeSymbols: true
+      includeSymbols: true,
+      allowCaps: true,
+      wordLength: "medium"
     },
     startTime: null,
     timeoutHandle: null
@@ -108,11 +110,24 @@ function allPlayersFinished(roomCode) {
 function buildResults(roomCode) {
   const room = rooms[roomCode];
   if (!room) return [];
+  const raceDurationMs = 60000;
+
+  function calculateScore(player) {
+    const progressScore = (player.progress || 0) * 12;
+    const speedScore = (player.wpm || 0) * 10;
+    const accuracyScore = (player.accuracy || 0) * 8;
+    const completionBonus = player.finished ? 2000 : 0;
+    const timeValue = player.finished ? player.finishTime || raceDurationMs : raceDurationMs;
+    const timePenalty = timeValue / 120;
+    return Math.max(0, Math.round(progressScore + speedScore + accuracyScore + completionBonus - timePenalty));
+  }
+
   return [...room.players]
+    .map((player) => ({ ...player, score: calculateScore(player) }))
     .sort((a, b) => {
-      if (a.finished && b.finished) return a.finishTime - b.finishTime;
-      if (a.finished) return -1;
-      if (b.finished) return 1;
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.finished && b.finished) return (a.finishTime || raceDurationMs) - (b.finishTime || raceDurationMs);
+      if (a.finished !== b.finished) return a.finished ? -1 : 1;
       return b.progress - a.progress;
     })
     .map((p, idx) => ({
@@ -120,7 +135,8 @@ function buildResults(roomCode) {
       placement: idx + 1,
       wpm: Math.round(p.wpm || 0),
       accuracy: Math.round(p.accuracy || 0),
-      timeMs: p.finishTime
+      timeMs: p.finishTime,
+      score: p.score
     }));
 }
 
@@ -156,7 +172,9 @@ function startRace(roomCode, settings = {}) {
   room.settings = {
     difficulty: settings.difficulty || room.settings?.difficulty || "hard",
     includeNumbers: settings.includeNumbers ?? room.settings?.includeNumbers ?? true,
-    includeSymbols: settings.includeSymbols ?? room.settings?.includeSymbols ?? true
+    includeSymbols: settings.includeSymbols ?? room.settings?.includeSymbols ?? true,
+    allowCaps: settings.allowCaps ?? room.settings?.allowCaps ?? true,
+    wordLength: settings.wordLength || room.settings?.wordLength || "medium"
   };
   room.status = "countdown";
   room.text = getRandomRaceText(room.settings);

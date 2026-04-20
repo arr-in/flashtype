@@ -36,7 +36,36 @@ export const soloTextBank = {
   ]
 };
 
-export function getRandomSoloText(difficulty = "medium") {
+export function getRandomSoloText(difficulty = "medium", previousText = "") {
   const list = soloTextBank[difficulty] || soloTextBank.medium;
-  return list[Math.floor(Math.random() * list.length)];
+  if (list.length === 1) return list[0];
+  let selected = list[Math.floor(Math.random() * list.length)];
+  let safety = 0;
+  while (selected === previousText && safety < 8) {
+    selected = list[Math.floor(Math.random() * list.length)];
+    safety += 1;
+  }
+  return selected;
+}
+
+const timedWordTargets = {
+  30: 220,
+  60: 380,
+  90: 540
+};
+
+export function getSoloTimedText(difficulty = "medium", timeLimitSec = 60) {
+  const list = soloTextBank[difficulty] || soloTextBank.medium;
+  const targetWordCount = timedWordTargets[timeLimitSec] || 220;
+  const words = [];
+  let safety = 0;
+
+  while (words.length < targetWordCount && safety < targetWordCount * 4) {
+    const sentence = list[Math.floor(Math.random() * list.length)];
+    const sentenceWords = sentence.split(/\s+/).filter(Boolean);
+    words.push(...sentenceWords);
+    safety += 1;
+  }
+
+  return words.slice(0, targetWordCount).join(" ");
 }

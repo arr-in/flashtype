@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enabled = true, ghostCursors = [] }) {
+function TypingBox({
+  text,
+  onComplete,
+  onProgress,
+  allowBackspace = true,
+  enabled = true,
+  ghostCursors = [],
+  timedMode = false,
+  timeLimitSec = 60
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
   const [correctCount, setCorrectCount] = useState(0);
@@ -30,15 +39,32 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
   }, [startTime]);
 
   useEffect(() => {
+    if (!timedMode || !startTime || completeRef.current) return undefined;
+
+    const timeout = setTimeout(() => {
+      if (completeRef.current) return;
+      completeRef.current = true;
+      onComplete?.({
+        wpm: Math.round(wpm),
+        accuracy: Math.round(accuracy),
+        timeMs: timeLimitSec * 1000,
+        completedText: false
+      });
+    }, Math.max(0, timeLimitSec * 1000 - elapsedMs));
+
+    return () => clearTimeout(timeout);
+  }, [timedMode, startTime, elapsedMs, onComplete, wpm, accuracy, timeLimitSec]);
+
+  useEffect(() => {
     onProgress?.({ charsTyped: typedCount, wpm, accuracy });
   }, [typedCount, wpm, accuracy, onProgress]);
 
   useEffect(() => {
-    if (!text || currentIndex < text.length || completeRef.current) return;
+    if (!text || currentIndex < text.length || completeRef.current || timedMode) return;
     completeRef.current = true;
     const finalTime = startTime ? Date.now() - startTime : 0;
-    onComplete?.({ wpm: Math.round(wpm), accuracy: Math.round(accuracy), timeMs: finalTime });
-  }, [text, currentIndex, startTime, wpm, accuracy, onComplete]);
+    onComplete?.({ wpm: Math.round(wpm), accuracy: Math.round(accuracy), timeMs: finalTime, completedText: true });
+  }, [text, currentIndex, startTime, wpm, accuracy, onComplete, timedMode]);
 
   useEffect(() => {
     function handleKeyDown(e) {
@@ -82,6 +108,7 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
     if (!startTime) return 0;
     return Math.max(1, Math.round(elapsedMs / 1000));
   }, [startTime, elapsedMs]);
+  const remainingSeconds = Math.max(0, timeLimitSec - Math.floor(elapsedMs / 1000));
 
   const ghostCursorByIndex = useMemo(() => {
     const map = {};
@@ -121,7 +148,7 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
       </div>
 
       <div className="typing-subtext">
-        <span>Time: {elapsedSeconds}s</span>
+        <span>{timedMode ? `Time Left: ${remainingSeconds}s` : `Time: ${elapsedSeconds}s`}</span>
         <span>Errors: {errorCount}</span>
       </div>
     </div>
