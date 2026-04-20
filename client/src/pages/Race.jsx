@@ -5,6 +5,16 @@ import RaceTrack from "../components/RaceTrack";
 import TypingBox from "../components/TypingBox";
 import { socket } from "../socket";
 
+const cursorPalette = ["#63a7ff", "#7fd9a8", "#e0a5ff", "#ffd166", "#8ecae6", "#f28482"];
+
+function colorForUsername(username) {
+  let hash = 0;
+  for (let i = 0; i < username.length; i += 1) {
+    hash = (hash + username.charCodeAt(i) * (i + 1)) % 10000;
+  }
+  return cursorPalette[hash % cursorPalette.length];
+}
+
 function Race() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,13 +92,32 @@ function Race() {
 
   const trackPlayers = useMemo(() => {
     if (players.some((p) => p.username === username)) return players;
-    return [...players, { username, progress: 0, wpm: 0, finished: false }];
+    return [...players, { username, progress: 0, charsTyped: 0, wpm: 0, finished: false }];
   }, [players, username]);
+
+  const ghostCursors = useMemo(
+    () =>
+      trackPlayers
+        .filter((p) => p.username !== username)
+        .map((p) => ({
+          username: p.username,
+          index: Math.max(0, Number(p.charsTyped || 0)),
+          color: colorForUsername(p.username)
+        })),
+    [trackPlayers, username]
+  );
 
   return (
     <main className="page race-page">
       <RaceTrack players={trackPlayers} />
-      <TypingBox text={raceText} onProgress={handleProgress} onComplete={handleComplete} allowBackspace={false} enabled={typingEnabled} />
+      <TypingBox
+        text={raceText}
+        onProgress={handleProgress}
+        onComplete={handleComplete}
+        allowBackspace
+        enabled={typingEnabled}
+        ghostCursors={ghostCursors}
+      />
       <Countdown value={countdownValue} visible={showCountdown} />
     </main>
   );

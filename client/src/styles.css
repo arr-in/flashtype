@@ -77,6 +77,14 @@ input {
   margin: 10px 0;
 }
 
+select {
+  background: #111;
+  color: #d1d1d1;
+  border: 1px solid #303030;
+  padding: 8px 10px;
+  font-family: inherit;
+}
+
 .panel {
   border: 1px solid #2a2a2a;
   background: #111;
@@ -122,6 +130,11 @@ input {
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  min-height: 220px;
+}
+
+.char {
+  position: relative;
 }
 
 .char.untyped {
@@ -137,13 +150,23 @@ input {
 }
 
 .typing-cursor {
-  display: inline-block;
+  position: absolute;
+  left: -1px;
+  top: 0.15em;
   width: 0;
   border-left: 2px solid #e2b714;
-  margin-right: 1px;
-  height: 1.1em;
-  vertical-align: text-bottom;
+  height: 0.95em;
   animation: blink 1s steps(1) infinite;
+}
+
+.ghost-cursor {
+  position: absolute;
+  left: -1px;
+  top: 0.2em;
+  width: 0;
+  height: 0.9em;
+  border-left: 2px solid;
+  opacity: 0.5;
 }
 
 @keyframes blink {
@@ -161,6 +184,19 @@ input {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.settings-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.settings-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .player-list {

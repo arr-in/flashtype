@@ -36,6 +36,11 @@ function createRoom(hostUsername, hostSocketId) {
     ],
     status: "waiting",
     text: "",
+    settings: {
+      difficulty: "hard",
+      includeNumbers: true,
+      includeSymbols: true
+    },
     startTime: null,
     timeoutHandle: null
   };
@@ -143,13 +148,18 @@ function removePlayerBySocket(socketId) {
   return removedInfo;
 }
 
-function startRace(roomCode) {
+function startRace(roomCode, settings = {}) {
   const room = rooms[roomCode];
   if (!room) return { error: "Room not found." };
   if (room.players.length < 2) return { error: "At least 2 players are required." };
 
+  room.settings = {
+    difficulty: settings.difficulty || room.settings?.difficulty || "hard",
+    includeNumbers: settings.includeNumbers ?? room.settings?.includeNumbers ?? true,
+    includeSymbols: settings.includeSymbols ?? room.settings?.includeSymbols ?? true
+  };
   room.status = "countdown";
-  room.text = getRandomRaceText();
+  room.text = getRandomRaceText(room.settings);
   room.startTime = null;
   room.players = room.players.map((p) => ({
     ...p,

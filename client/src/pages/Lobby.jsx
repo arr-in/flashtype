@@ -12,6 +12,11 @@ function Lobby() {
   const [host, setHost] = useState("");
   const [error, setError] = useState("");
   const [joinMode, setJoinMode] = useState(false);
+  const [raceSettings, setRaceSettings] = useState({
+    difficulty: "hard",
+    includeNumbers: true,
+    includeSymbols: true
+  });
 
   useEffect(() => {
     function onRoomJoined(payload) {
@@ -19,6 +24,7 @@ function Lobby() {
       setPlayers(payload.players || []);
       setIsHost(Boolean(payload.isHost));
       setHost(payload.host || "");
+      if (payload.settings) setRaceSettings(payload.settings);
       setError("");
       sessionStorage.setItem("flash_username", username.trim());
       sessionStorage.setItem("flash_room", payload.roomCode);
@@ -30,6 +36,7 @@ function Lobby() {
       const hostName = payload.host || "";
       setPlayers(payload.players || []);
       setHost(hostName);
+      if (payload.settings) setRaceSettings(payload.settings);
       setIsHost(currentUsername === hostName);
       sessionStorage.setItem("flash_host", String(currentUsername === hostName));
     }
@@ -85,7 +92,11 @@ function Lobby() {
   }
 
   function startRace() {
-    socket.emit("start_race", { roomCode, username: sessionStorage.getItem("flash_username") });
+    socket.emit("start_race", {
+      roomCode,
+      username: sessionStorage.getItem("flash_username"),
+      settings: raceSettings
+    });
   }
 
   async function copyRoomCode() {
@@ -155,9 +166,58 @@ function Lobby() {
             ))}
           </div>
           {isHost ? (
-            <button type="button" onClick={startRace} disabled={players.length < 2}>
-              Start Race
-            </button>
+            <>
+              <div className="settings-row">
+                <label htmlFor="difficulty">Complexity</label>
+                <select
+                  id="difficulty"
+                  value={raceSettings.difficulty}
+                  onChange={(e) =>
+                    setRaceSettings((prev) => ({
+                      ...prev,
+                      difficulty: e.target.value
+                    }))
+                  }
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </div>
+              <div className="settings-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={raceSettings.includeNumbers}
+                    onChange={(e) =>
+                      setRaceSettings((prev) => ({
+                        ...prev,
+                        includeNumbers: e.target.checked
+                      }))
+                    }
+                  />
+                  Include numbers
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={raceSettings.includeSymbols}
+                    onChange={(e) =>
+                      setRaceSettings((prev) => ({
+                        ...prev,
+                        includeSymbols: e.target.checked
+                      }))
+                    }
+                  />
+                  Include special characters
+                </label>
+              </div>
+              <button type="button" onClick={startRace} disabled={players.length < 2}>
+                Start Race
+              </button>
+            </>
           ) : (
             <p>Waiting for host to start...</p>
           )}

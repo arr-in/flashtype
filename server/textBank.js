@@ -51,8 +51,26 @@ function getRandomTextByDifficulty(difficulty = "medium") {
   return list[randomIndex];
 }
 
-function getRandomRaceText() {
-  return getRandomTextByDifficulty("hard");
+function applyRaceFilters(text, options = {}) {
+  const { includeNumbers = true, includeSymbols = true } = options;
+  let output = String(text || "");
+
+  if (!includeNumbers) {
+    output = output.replace(/\d/g, "");
+  }
+
+  if (!includeSymbols) {
+    output = output.replace(/[^A-Za-z0-9\s]/g, "");
+  }
+
+  return output.replace(/\s+/g, " ").trim();
+}
+
+function getRandomRaceText(options = {}) {
+  const difficulty = options.difficulty || "hard";
+  const baseText = getRandomTextByDifficulty(difficulty);
+  const filtered = applyRaceFilters(baseText, options);
+  return filtered.length > 20 ? filtered : baseText;
 }
 
 module.exports = {

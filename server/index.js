@@ -72,7 +72,8 @@ function broadcastPlayerList(roomCode) {
   io.to(roomCode).emit("player_list_update", {
     roomCode,
     host: room.host,
-    players: room.players.map((p) => ({ username: p.username }))
+    players: room.players.map((p) => ({ username: p.username })),
+    settings: room.settings
   });
 }
 
@@ -101,7 +102,8 @@ io.on("connection", (socket) => {
       roomCode,
       players: room.players.map((p) => ({ username: p.username })),
       isHost: true,
-      host: room.host
+      host: room.host,
+      settings: room.settings
     });
     broadcastPlayerList(roomCode);
   });
@@ -125,23 +127,25 @@ io.on("connection", (socket) => {
       roomCode: cleanRoom,
       players: result.room.players.map((p) => ({ username: p.username })),
       isHost: result.room.host === cleanName,
-      host: result.room.host
+      host: result.room.host,
+      settings: result.room.settings
     });
     broadcastPlayerList(cleanRoom);
   });
 
-  socket.on("start_race", ({ roomCode, username }) => {
+  socket.on("start_race", ({ roomCode, username, settings }) => {
     const room = getRoom(roomCode);
     if (!room) return socket.emit("room_error", { message: "Room not found." });
     if (room.host !== username) return socket.emit("room_error", { message: "Only the host can start the race." });
 
-    const startResult = startRace(roomCode);
+    const startResult = startRace(roomCode, settings || {});
     if (startResult.error) return socket.emit("room_error", { message: startResult.error });
 
     io.to(roomCode).emit("race_starting", {
       roomCode,
       text: startResult.room.text,
-      countdown: [3, 2, 1, "GO!"]
+      countdown: [3, 2, 1, "GO!"],
+      settings: startResult.room.settings
     });
 
     setTimeout(() => {
@@ -152,6 +156,7 @@ io.on("connection", (socket) => {
         players: currentRoom.players.map((p) => ({
           username: p.username,
           progress: p.progress,
+          charsTyped: p.charsTyped,
           wpm: p.wpm,
           finished: p.finished
         }))
@@ -168,6 +173,7 @@ io.on("connection", (socket) => {
       players: players.map((p) => ({
         username: p.username,
         progress: p.progress,
+        charsTyped: p.charsTyped,
         wpm: p.wpm,
         finished: p.finished
       }))
@@ -182,6 +188,7 @@ io.on("connection", (socket) => {
       players: room.players.map((p) => ({
         username: p.username,
         progress: p.finished ? 100 : p.progress,
+        charsTyped: p.charsTyped,
         wpm: p.wpm,
         finished: p.finished
       }))
@@ -199,7 +206,8 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("player_list_update", {
       roomCode,
       host: resetRoom.host,
-      players: resetRoom.players.map((p) => ({ username: p.username }))
+      players: resetRoom.players.map((p) => ({ username: p.username })),
+      settings: resetRoom.settings
     });
   });
 

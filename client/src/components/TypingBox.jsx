@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enabled = true }) {
+function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enabled = true, ghostCursors = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
   const [correctCount, setCorrectCount] = useState(0);
@@ -30,7 +30,7 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
   }, [startTime]);
 
   useEffect(() => {
-    if (typedCount > 0) onProgress?.({ charsTyped: typedCount, wpm, accuracy });
+    onProgress?.({ charsTyped: typedCount, wpm, accuracy });
   }, [typedCount, wpm, accuracy, onProgress]);
 
   useEffect(() => {
@@ -83,6 +83,18 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
     return Math.max(1, Math.round(elapsedMs / 1000));
   }, [startTime, elapsedMs]);
 
+  const ghostCursorByIndex = useMemo(() => {
+    const map = {};
+    ghostCursors.forEach((cursor) => {
+      const idx = Number(cursor.index);
+      if (Number.isNaN(idx)) return;
+      const safeIdx = Math.max(0, Math.min(text.length - 1, idx));
+      if (!map[safeIdx]) map[safeIdx] = [];
+      map[safeIdx].push(cursor);
+    });
+    return map;
+  }, [ghostCursors, text.length]);
+
   return (
     <div className={`typing-box ${enabled ? "" : "typing-box-disabled"}`}>
       <div className="typing-metrics">
@@ -93,6 +105,15 @@ function TypingBox({ text, onComplete, onProgress, allowBackspace = true, enable
       <div className="typing-text" role="textbox" aria-label="Typing workspace">
         {text.split("").map((char, index) => (
           <span key={`${char}-${index}`} className={`char ${charStates[index] || "untyped"}`}>
+            {!!ghostCursorByIndex[index] &&
+              ghostCursorByIndex[index].map((cursor) => (
+                <span
+                  key={`${cursor.username}-${index}`}
+                  className="ghost-cursor"
+                  style={{ borderColor: cursor.color || "#6aa0ff" }}
+                  title={cursor.username}
+                />
+              ))}
             {index === currentIndex && enabled && <span className="typing-cursor" />}
             {char}
           </span>
