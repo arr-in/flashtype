@@ -43,6 +43,7 @@ function createRoom(hostUsername, hostSocketId) {
       allowCaps: true,
       wordLength: "medium"
     },
+    readyPlayers: [],
     startTime: null,
     timeoutHandle: null
   };
@@ -66,6 +67,7 @@ function joinRoom(roomCode, username, socketId) {
     finishTime: null,
     placement: null
   });
+  room.readyPlayers = room.readyPlayers || [];
   return { room };
 }
 
@@ -83,6 +85,10 @@ function updatePlayerProgress(roomCode, username, payload) {
   player.progress = payload.totalChars > 0 ? Math.min(100, (payload.charsTyped / payload.totalChars) * 100) : 0;
   player.wpm = payload.wpm;
   player.accuracy = payload.accuracy;
+  if (payload.disqualified) {
+    player.disqualified = true;
+    player.finished = true;
+  }
   return room.players;
 }
 
@@ -93,6 +99,7 @@ function markPlayerFinished(roomCode, username, stats) {
   if (!player || player.finished) return room;
 
   player.finished = true;
+  player.disqualified = stats.disqualified || false;
   player.finishTime = stats.timeMs;
   player.wpm = stats.wpm;
   player.accuracy = stats.accuracy;
@@ -105,6 +112,20 @@ function allPlayersFinished(roomCode) {
   const room = rooms[roomCode];
   if (!room) return false;
   return room.players.every((p) => p.finished);
+}
+
+function markPlayerDisqualified(roomCode, username, stats = {}) {
+  const room = rooms[roomCode];
+  if (!room) return null;
+  const player = room.players.find((p) => p.username === username);
+  if (!player || player.finished) return room;
+
+  player.disqualified = true;
+  player.finished = true;
+  player.finishTime = stats.timeMs || null;
+  player.wpm = stats.wpm || player.wpm || 0;
+  player.accuracy = stats.accuracy || player.accuracy || 0;
+  return room;
 }
 
 function buildResults(roomCode) {
@@ -126,6 +147,7 @@ function buildResults(roomCode) {
     .map((player) => ({ ...player, score: calculateScore(player) }))
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
+      if (a.disqualified !== b.disqualified) return a.disqualified ? 1 : -1;
       if (a.finished && b.finished) return (a.finishTime || raceDurationMs) - (b.finishTime || raceDurationMs);
       if (a.finished !== b.finished) return a.finished ? -1 : 1;
       return b.progress - a.progress;
@@ -136,7 +158,8 @@ function buildResults(roomCode) {
       wpm: Math.round(p.wpm || 0),
       accuracy: Math.round(p.accuracy || 0),
       timeMs: p.finishTime,
-      score: p.score
+      score: p.score,
+      disqualified: Boolean(p.disqualified)
     }));
 }
 
@@ -177,6 +200,7 @@ function startRace(roomCode, settings = {}) {
     wordLength: settings.wordLength || room.settings?.wordLength || "medium"
   };
   room.status = "countdown";
+  room.readyPlayers = [];
   room.text = getRandomRaceText(room.settings);
   room.startTime = null;
   room.players = room.players.map((p) => ({
@@ -186,6 +210,7 @@ function startRace(roomCode, settings = {}) {
     wpm: 0,
     accuracy: 100,
     finished: false,
+    disqualified: false,
     finishTime: null,
     placement: null
   }));
@@ -219,6 +244,7 @@ function resetRoomForReplay(roomCode) {
   const room = rooms[roomCode];
   if (!room) return null;
   room.status = "waiting";
+  room.readyPlayers = [];
   room.text = "";
   room.startTime = null;
   room.players = room.players.map((p) => ({
@@ -228,10 +254,26 @@ function resetRoomForReplay(roomCode) {
     wpm: 0,
     accuracy: 100,
     finished: false,
+    disqualified: false,
     finishTime: null,
     placement: null
   }));
   return room;
+}
+
+function setPlayerReadyForReplay(roomCode, username) {
+  const room = rooms[roomCode];
+  if (!room) return null;
+  if (!room.readyPlayers.includes(username)) {
+    room.readyPlayers.push(username);
+  }
+  return room;
+}
+
+function areAllPlayersReady(roomCode) {
+  const room = rooms[roomCode];
+  if (!room || room.players.length === 0) return false;
+  return room.players.every((p) => room.readyPlayers.includes(p.username));
 }
 
 module.exports = {
@@ -241,6 +283,7 @@ module.exports = {
   getRoom,
   updatePlayerProgress,
   markPlayerFinished,
+  markPlayerDisqualified,
   allPlayersFinished,
   buildResults,
   removePlayerBySocket,
@@ -248,5 +291,7 @@ module.exports = {
   setRaceStarted,
   setRaceFinished,
   setRoomTimeout,
-  resetRoomForReplay
+  resetRoomForReplay,
+  setPlayerReadyForReplay,
+  areAllPlayersReady
 };

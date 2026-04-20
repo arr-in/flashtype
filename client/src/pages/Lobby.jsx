@@ -12,6 +12,8 @@ function Lobby() {
   const [host, setHost] = useState("");
   const [error, setError] = useState("");
   const [joinMode, setJoinMode] = useState(false);
+  const [roomStatus, setRoomStatus] = useState("waiting");
+  const [readyPlayers, setReadyPlayers] = useState([]);
   const [raceSettings, setRaceSettings] = useState({
     difficulty: "hard",
     includeNumbers: true,
@@ -27,6 +29,8 @@ function Lobby() {
       setIsHost(Boolean(payload.isHost));
       setHost(payload.host || "");
       if (payload.settings) setRaceSettings(payload.settings);
+      setRoomStatus(payload.status || "waiting");
+      setReadyPlayers(payload.readyPlayers || []);
       setError("");
       sessionStorage.setItem("flash_username", username.trim());
       sessionStorage.setItem("flash_room", payload.roomCode);
@@ -39,6 +43,8 @@ function Lobby() {
       setPlayers(payload.players || []);
       setHost(hostName);
       if (payload.settings) setRaceSettings(payload.settings);
+      setRoomStatus(payload.status || "waiting");
+      setReadyPlayers(payload.readyPlayers || []);
       setIsHost(currentUsername === hostName);
       sessionStorage.setItem("flash_host", String(currentUsername === hostName));
     }
@@ -107,6 +113,8 @@ function Lobby() {
   }
 
   const inWaitingRoom = Boolean(roomCode);
+  const allReady = players.length > 0 && players.every((p) => readyPlayers.includes(p.username));
+  const canStartRace = players.length >= 2 && (roomStatus !== "finished" || allReady);
 
   return (
     <main className="page">
@@ -164,6 +172,7 @@ function Lobby() {
               <div key={player.username} className="player-item">
                 {player.username}
                 {player.username === host ? " (Host)" : ""}
+                {readyPlayers.includes(player.username) ? " - Ready" : ""}
               </div>
             ))}
           </div>
@@ -246,9 +255,10 @@ function Lobby() {
                   Allow capitals
                 </label>
               </div>
-              <button type="button" onClick={startRace} disabled={players.length < 2}>
+              <button type="button" onClick={startRace} disabled={!canStartRace}>
                 Start Race
               </button>
+              {roomStatus === "finished" && !allReady && <p>Waiting for everyone to click Play Again.</p>}
             </>
           ) : (
             <p>Waiting for host to start...</p>

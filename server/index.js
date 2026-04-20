@@ -8,6 +8,7 @@ const {
   getRoom,
   updatePlayerProgress,
   markPlayerFinished,
+  markPlayerDisqualified,
   allPlayersFinished,
   buildResults,
   removePlayerBySocket,
@@ -15,7 +16,9 @@ const {
   setRaceStarted,
   setRaceFinished,
   setRoomTimeout,
-  resetRoomForReplay
+  resetRoomForReplay,
+  setPlayerReadyForReplay,
+  areAllPlayersReady
 } = require("./roomManager");
 
 const PORT = process.env.PORT || 3001;
@@ -73,7 +76,9 @@ function broadcastPlayerList(roomCode) {
     roomCode,
     host: room.host,
     players: room.players.map((p) => ({ username: p.username })),
-    settings: room.settings
+    settings: room.settings,
+    status: room.status,
+    readyPlayers: room.readyPlayers || []
   });
 }
 
@@ -103,7 +108,9 @@ io.on("connection", (socket) => {
       players: room.players.map((p) => ({ username: p.username })),
       isHost: true,
       host: room.host,
-      settings: room.settings
+      settings: room.settings,
+      status: room.status,
+      readyPlayers: room.readyPlayers || []
     });
     broadcastPlayerList(roomCode);
   });
@@ -128,7 +135,9 @@ io.on("connection", (socket) => {
       players: result.room.players.map((p) => ({ username: p.username })),
       isHost: result.room.host === cleanName,
       host: result.room.host,
-      settings: result.room.settings
+      settings: result.room.settings,
+      status: result.room.status,
+      readyPlayers: result.room.readyPlayers || []
     });
     broadcastPlayerList(cleanRoom);
   });
@@ -137,6 +146,9 @@ io.on("connection", (socket) => {
     const room = getRoom(roomCode);
     if (!room) return socket.emit("room_error", { message: "Room not found." });
     if (room.host !== username) return socket.emit("room_error", { message: "Only the host can start the race." });
+    if (room.status === "finished" && !areAllPlayersReady(roomCode)) {
+      return socket.emit("room_error", { message: "All players must click Play Again first." });
+    }
 
     const startResult = startRace(roomCode, settings || {});
     if (startResult.error) return socket.emit("room_error", { message: startResult.error });
@@ -158,7 +170,8 @@ io.on("connection", (socket) => {
           progress: p.progress,
           charsTyped: p.charsTyped,
           wpm: p.wpm,
-          finished: p.finished
+          finished: p.finished,
+          disqualified: Boolean(p.disqualified)
         }))
       });
       const timeout = setTimeout(() => emitRaceOver(roomCode), 60000);
@@ -175,7 +188,8 @@ io.on("connection", (socket) => {
         progress: p.progress,
         charsTyped: p.charsTyped,
         wpm: p.wpm,
-        finished: p.finished
+        finished: p.finished,
+        disqualified: Boolean(p.disqualified)
       }))
     });
   });
@@ -190,7 +204,26 @@ io.on("connection", (socket) => {
         progress: p.finished ? 100 : p.progress,
         charsTyped: p.charsTyped,
         wpm: p.wpm,
-        finished: p.finished
+        finished: p.finished,
+        disqualified: Boolean(p.disqualified)
+      }))
+    });
+
+    if (allPlayersFinished(roomCode)) emitRaceOver(roomCode);
+  });
+
+  socket.on("player_disqualified", ({ roomCode, username, wpm, accuracy, timeMs }) => {
+    const room = markPlayerDisqualified(roomCode, username, { wpm, accuracy, timeMs });
+    if (!room) return;
+
+    io.to(roomCode).emit("position_update", {
+      players: room.players.map((p) => ({
+        username: p.username,
+        progress: p.finished ? p.progress : p.progress,
+        charsTyped: p.charsTyped,
+        wpm: p.wpm,
+        finished: p.finished,
+        disqualified: Boolean(p.disqualified)
       }))
     });
 
@@ -200,14 +233,40 @@ io.on("connection", (socket) => {
   socket.on("play_again", ({ roomCode, username }) => {
     const room = getRoom(roomCode);
     if (!room) return socket.emit("room_error", { message: "Room not found." });
-    if (room.host !== username) return socket.emit("room_error", { message: "Only host can restart." });
+
+    const updatedRoom = setPlayerReadyForReplay(roomCode, username);
+    if (!updatedRoom) return;
+
+    io.to(roomCode).emit("player_list_update", {
+      roomCode,
+      host: updatedRoom.host,
+      players: updatedRoom.players.map((p) => ({ username: p.username })),
+      settings: updatedRoom.settings,
+      status: updatedRoom.status,
+      readyPlayers: updatedRoom.readyPlayers || []
+    });
+  });
+
+  socket.on("end_race", ({ roomCode, username }) => {
+    const room = getRoom(roomCode);
+    if (!room) return socket.emit("room_error", { message: "Room not found." });
+    if (room.host !== username) return socket.emit("room_error", { message: "Only host can end the race." });
+    emitRaceOver(roomCode);
+  });
+
+  socket.on("reset_room_after_results", ({ roomCode, username }) => {
+    const room = getRoom(roomCode);
+    if (!room) return socket.emit("room_error", { message: "Room not found." });
+    if (room.host !== username) return socket.emit("room_error", { message: "Only host can reset room." });
 
     const resetRoom = resetRoomForReplay(roomCode);
     io.to(roomCode).emit("player_list_update", {
       roomCode,
       host: resetRoom.host,
       players: resetRoom.players.map((p) => ({ username: p.username })),
-      settings: resetRoom.settings
+      settings: resetRoom.settings,
+      status: resetRoom.status,
+      readyPlayers: resetRoom.readyPlayers || []
     });
   });
 

@@ -28,6 +28,7 @@ function Race() {
   const [showCountdown, setShowCountdown] = useState(true);
   const [typingEnabled, setTypingEnabled] = useState(false);
   const [players, setPlayers] = useState(state.players || []);
+  const isHost = sessionStorage.getItem("flash_host") === "true";
 
   useEffect(() => {
     if (!raceText || !roomCode || !username) {
@@ -90,6 +91,18 @@ function Race() {
     socket.emit("player_finished", { roomCode, username, wpm, accuracy, timeMs });
   }
 
+  function handleDisqualified({ wpm, accuracy, timeMs }) {
+    setTypingEnabled(false);
+    socket.emit("player_disqualified", { roomCode, username, wpm, accuracy, timeMs });
+  }
+
+  function endRace() {
+    socket.emit("end_race", {
+      roomCode,
+      username: sessionStorage.getItem("flash_username")
+    });
+  }
+
   const trackPlayers = useMemo(() => {
     if (players.some((p) => p.username === username)) return players;
     return [...players, { username, progress: 0, charsTyped: 0, wpm: 0, finished: false }];
@@ -107,16 +120,29 @@ function Race() {
     [trackPlayers, username]
   );
 
+  const me = trackPlayers.find((p) => p.username === username);
+  const isDisqualified = Boolean(me?.disqualified);
+
   return (
     <main className="page race-page">
+      <div className="race-actions">
+        {isHost && (
+          <button type="button" onClick={endRace}>
+            End Race
+          </button>
+        )}
+        {isDisqualified && <p className="error-text">Disqualified: 5 wrong words in a row.</p>}
+      </div>
       <RaceTrack players={trackPlayers} />
       <TypingBox
         text={raceText}
         onProgress={handleProgress}
         onComplete={handleComplete}
+        onDisqualify={handleDisqualified}
         allowBackspace
-        enabled={typingEnabled}
+        enabled={typingEnabled && !isDisqualified}
         ghostCursors={ghostCursors}
+        disqualifyAfterWrongWords={5}
       />
       <Countdown value={countdownValue} visible={showCountdown} />
     </main>

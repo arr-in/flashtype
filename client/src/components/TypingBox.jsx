@@ -8,12 +8,16 @@ function TypingBox({
   enabled = true,
   ghostCursors = [],
   timedMode = false,
-  timeLimitSec = 60
+  timeLimitSec = 60,
+  disqualifyAfterWrongWords = 0,
+  onDisqualify
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
   const [correctCount, setCorrectCount] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  const [currentWordHasError, setCurrentWordHasError] = useState(false);
+  const [wrongWordStreak, setWrongWordStreak] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const completeRef = useRef(false);
@@ -27,6 +31,8 @@ function TypingBox({
     setCurrentIndex(0);
     setCorrectCount(0);
     setErrorCount(0);
+    setCurrentWordHasError(false);
+    setWrongWordStreak(0);
     setStartTime(null);
     setElapsedMs(0);
     completeRef.current = false;
@@ -83,6 +89,8 @@ function TypingBox({
         if (previousState === "correct") setCorrectCount((c) => Math.max(0, c - 1));
         if (previousState === "error") setErrorCount((c) => Math.max(0, c - 1));
         setCurrentIndex((i) => i - 1);
+        setCurrentWordHasError(false);
+        setWrongWordStreak(0);
         return;
       }
 
@@ -96,13 +104,48 @@ function TypingBox({
         return next;
       });
       if (isCorrect) setCorrectCount((c) => c + 1);
-      else setErrorCount((c) => c + 1);
+      else {
+        setErrorCount((c) => c + 1);
+        setCurrentWordHasError(true);
+      }
+
+      const expectedChar = text[currentIndex];
+      if (expectedChar === " " || currentIndex === text.length - 1) {
+        const nextWordStreak = currentWordHasError || !isCorrect ? wrongWordStreak + 1 : 0;
+        setWrongWordStreak(nextWordStreak);
+        setCurrentWordHasError(false);
+
+        if (disqualifyAfterWrongWords > 0 && nextWordStreak >= disqualifyAfterWrongWords && !completeRef.current) {
+          completeRef.current = true;
+          const finalTime = startTime ? Date.now() - startTime : 0;
+          onDisqualify?.({
+            wpm: Math.round(wpm),
+            accuracy: Math.round(accuracy),
+            timeMs: finalTime,
+            wrongWordStreak: nextWordStreak
+          });
+          return;
+        }
+      }
       setCurrentIndex((i) => i + 1);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [text, enabled, startTime, currentIndex, allowBackspace, charStates]);
+  }, [
+    text,
+    enabled,
+    startTime,
+    currentIndex,
+    allowBackspace,
+    charStates,
+    currentWordHasError,
+    wrongWordStreak,
+    disqualifyAfterWrongWords,
+    onDisqualify,
+    wpm,
+    accuracy
+  ]);
 
   const elapsedSeconds = useMemo(() => {
     if (!startTime) return 0;
@@ -150,6 +193,7 @@ function TypingBox({
       <div className="typing-subtext">
         <span>{timedMode ? `Time Left: ${remainingSeconds}s` : `Time: ${elapsedSeconds}s`}</span>
         <span>Errors: {errorCount}</span>
+        {disqualifyAfterWrongWords > 0 && <span>Wrong-word streak: {wrongWordStreak}</span>}
       </div>
     </div>
   );

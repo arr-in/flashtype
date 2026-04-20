@@ -12,7 +12,6 @@ function Results() {
   const results = state.results || [];
   const currentUser = state.currentUser || "You";
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room");
-  const isHost = state.isHost ?? sessionStorage.getItem("flash_host") === "true";
 
   const soloMeta = useMemo(() => {
     if (mode !== "solo" || !state.difficulty) return null;
@@ -55,12 +54,12 @@ function Results() {
             Retry
           </button>
         )}
-        {mode === "multiplayer" && isHost && (
+        {mode === "multiplayer" && (
           <button type="button" onClick={playAgain}>
             Play Again
           </button>
         )}
-        {mode === "multiplayer" && !isHost && <p>Waiting for host to restart...</p>}
+        {mode === "multiplayer" && <p>All players must click Play Again before host can start next race.</p>}
         <button type="button" onClick={backHome}>
           Back to Home
         </button>

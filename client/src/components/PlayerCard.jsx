@@ -10,6 +10,7 @@ function PlayerCard({ player, highlighted = false }) {
     <div className={`player-card ${highlighted ? "highlighted" : ""}`}>
       <div>{player.username}</div>
       <div>{placementLabel(player.placement)}</div>
+      {player.disqualified && <div className="error-text">Disqualified</div>}
       <div>WPM: {player.wpm}</div>
       <div>Accuracy: {player.accuracy}%</div>
       {typeof player.score === "number" && <div>Score: {player.score}</div>}
