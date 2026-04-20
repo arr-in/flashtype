@@ -38,6 +38,10 @@ function Lobby() {
       setError(payload.message || "Something went wrong.");
     }
 
+    function onConnectError() {
+      setError("Cannot reach server. Check backend URL/CORS and try again.");
+    }
+
     function onRaceStarting(payload) {
       navigate("/race", {
         state: {
@@ -53,22 +57,30 @@ function Lobby() {
     socket.on("room_joined", onRoomJoined);
     socket.on("player_list_update", onPlayerList);
     socket.on("room_error", onError);
+    socket.on("connect_error", onConnectError);
     socket.on("race_starting", onRaceStarting);
     return () => {
       socket.off("room_joined", onRoomJoined);
       socket.off("player_list_update", onPlayerList);
       socket.off("room_error", onError);
+      socket.off("connect_error", onConnectError);
       socket.off("race_starting", onRaceStarting);
     };
   }, [navigate, username, players]);
 
   function createRoom() {
     if (!username.trim()) return setError("Username is required.");
+    if (!socket.connected) socket.connect();
+    sessionStorage.setItem("flash_username", username.trim());
+    setError("");
     socket.emit("create_room", { username: username.trim() });
   }
 
   function joinRoom() {
     if (!username.trim() || !roomCodeInput.trim()) return setError("Username and room code are required.");
+    if (!socket.connected) socket.connect();
+    sessionStorage.setItem("flash_username", username.trim());
+    setError("");
     socket.emit("join_room", { username: username.trim(), roomCode: roomCodeInput.trim().toUpperCase() });
   }
 

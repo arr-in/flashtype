@@ -18,9 +18,24 @@ const {
   resetRoomForReplay
 } = require("./roomManager");
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = [CLIENT_URL, "http://localhost:5173"];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  return allowedOrigins.includes(origin);
+}
+
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  })
+);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
@@ -30,7 +45,10 @@ app.get("/health", (_req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by Socket.io CORS"));
+    },
     methods: ["GET", "POST"]
   }
 });
@@ -183,5 +201,6 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`FlashType server running on http://localhost:${PORT}`);
+  console.log(`FlashType server running on port ${PORT}`);
+  console.log(`Allowed client origin: ${CLIENT_URL}`);
 });

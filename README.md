@@ -46,3 +46,14 @@ npm run dev
 - Socket.io CORS is configured for `http://localhost:5173`
 - No authentication is used (username only)
 - Rooms and race state are in-memory and reset when server restarts
+
+## Deployment Environment Variables
+
+For backend (`server`):
+
+- `PORT=3001` (or platform-provided port)
+- `CLIENT_URL=https://your-vercel-app.vercel.app`
+
+For frontend (`client` on Vercel):
+
+- `VITE_SOCKET_URL=https://your-backend-domain`
