@@ -19,12 +19,25 @@ const {
 } = require("./roomManager");
 
 const PORT = process.env.PORT || 3001;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
-const allowedOrigins = [CLIENT_URL, "http://localhost:5173"];
+const rawClientUrls = process.env.CLIENT_URL || "http://localhost:5173";
+
+function normalizeOrigin(value) {
+  return String(value || "").trim().replace(/\/+$/, "");
+}
+
+const allowedOrigins = rawClientUrls
+  .split(",")
+  .map((url) => normalizeOrigin(url))
+  .filter(Boolean);
+
+if (!allowedOrigins.includes("http://localhost:5173")) {
+  allowedOrigins.push("http://localhost:5173");
+}
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
-  return allowedOrigins.includes(origin);
+  const normalizedOrigin = normalizeOrigin(origin);
+  return allowedOrigins.includes(normalizedOrigin);
 }
 
 const app = express();
@@ -202,5 +215,5 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, () => {
   console.log(`FlashType server running on port ${PORT}`);
-  console.log(`Allowed client origin: ${CLIENT_URL}`);
+  console.log(`Allowed client origins: ${allowedOrigins.join(", ")}`);
 });
