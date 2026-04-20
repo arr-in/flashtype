@@ -1,0 +1,242 @@
+:root {
+  font-family: "Courier New", Courier, monospace;
+  color: #d1d1d1;
+  background: #0e0e0e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0e0e0e;
+  color: #d1d1d1;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-title {
+  margin: 0 0 24px;
+  font-size: 56px;
+  color: #ffffff;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.button-stack,
+.button-wrap {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: #171717;
+  border: 1px solid #303030;
+  color: #d1d1d1;
+  padding: 10px 14px;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+input {
+  width: 100%;
+  background: #111;
+  color: #d1d1d1;
+  border: 1px solid #303030;
+  padding: 10px;
+  font-family: inherit;
+  margin: 10px 0;
+}
+
+.panel {
+  border: 1px solid #2a2a2a;
+  background: #111;
+  padding: 14px;
+}
+
+.error-text {
+  color: #e05252;
+}
+
+.solo-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.typing-box {
+  border: 1px solid #2a2a2a;
+  background: #111;
+  padding: 18px;
+}
+
+.typing-box-disabled {
+  opacity: 0.65;
+}
+
+.typing-metrics,
+.typing-subtext {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.typing-subtext {
+  margin-top: 10px;
+  margin-bottom: 0;
+  color: #aaaaaa;
+  font-size: 14px;
+}
+
+.typing-text {
+  font-size: 30px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.char.untyped {
+  color: #666;
+}
+
+.char.correct {
+  color: #ffffff;
+}
+
+.char.error {
+  color: #e05252;
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 0;
+  border-left: 2px solid #e2b714;
+  margin-right: 1px;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.room-code-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-list {
+  margin: 12px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.player-item {
+  border: 1px solid #2a2a2a;
+  padding: 8px;
+  background: #0f0f0f;
+}
+
+.race-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.race-track {
+  border: 1px solid #2a2a2a;
+  background: #111;
+  padding: 12px;
+  min-height: 220px;
+}
+
+.race-lane {
+  display: grid;
+  grid-template-columns: 130px 1fr 90px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.race-lane-track {
+  height: 26px;
+  border: 1px solid #2f2f2f;
+  position: relative;
+}
+
+.race-car {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  transition: left 0.15s ease-out;
+}
+
+.countdown-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.countdown-value {
+  color: #fff;
+  font-size: 88px;
+}
+
+.results-grid {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.player-card {
+  border: 1px solid #2a2a2a;
+  background: #111;
+  padding: 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.player-card.highlighted {
+  border-color: #e2b714;
+}
