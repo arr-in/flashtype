@@ -50,6 +50,7 @@ function Solo() {
         mode: "solo",
         difficulty,
         timeLimit,
+        soloTelemetry: stats.telemetry || null,
         currentUser: "You",
         results: [
           {
@@ -130,6 +131,7 @@ function Solo() {
             timedMode
             timeLimitSec={timeLimit}
             onRestart={() => restartTest()}
+            collectTelemetry
           />
           <div className="button-wrap">
             <button type="button" onClick={() => setText("")}>

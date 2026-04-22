@@ -11,7 +11,8 @@ function TypingBox({
   timeLimitSec = 60,
   disqualifyAfterWrongWords = 0,
   onDisqualify,
-  onRestart
+  onRestart,
+  collectTelemetry = false
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
@@ -24,6 +25,10 @@ function TypingBox({
   const [lineOffsetPx, setLineOffsetPx] = useState(0);
   const completeRef = useRef(false);
   const textViewportRef = useRef(null);
+  const backspaceCountRef = useRef(0);
+  const keyMetricsRef = useRef({});
+  const keyEventsRef = useRef([]);
+  const lastInputTsRef = useRef(null);
 
   const typedCount = currentIndex;
   const accuracy = typedCount > 0 ? (correctCount / typedCount) * 100 : 100;
@@ -39,8 +44,51 @@ function TypingBox({
     setStartTime(null);
     setElapsedMs(0);
     setLineOffsetPx(0);
+    backspaceCountRef.current = 0;
+    keyMetricsRef.current = {};
+    keyEventsRef.current = [];
+    lastInputTsRef.current = null;
     completeRef.current = false;
   }, [text]);
+
+  function buildTelemetry(finalElapsedMs) {
+    if (!collectTelemetry) return null;
+
+    const wordBuckets = {};
+    keyEventsRef.current.forEach((evt) => {
+      const wordIndex = text.slice(0, evt.index + 1).split(" ").length - 1;
+      if (!wordBuckets[wordIndex]) {
+        wordBuckets[wordIndex] = { attempts: 0, errors: 0, delayTotal: 0 };
+      }
+      wordBuckets[wordIndex].attempts += 1;
+      wordBuckets[wordIndex].delayTotal += evt.delayMs || 0;
+      if (!evt.isCorrect) wordBuckets[wordIndex].errors += 1;
+    });
+
+    const words = text.split(/\s+/).filter(Boolean);
+    const hardWords = Object.entries(wordBuckets)
+      .map(([idx, bucket]) => {
+        const word = words[Number(idx)] || "";
+        const avgDelay = bucket.attempts ? bucket.delayTotal / bucket.attempts : 0;
+        const difficultyScore = bucket.errors * 3 + avgDelay / 140;
+        return {
+          word,
+          errors: bucket.errors,
+          avgDelay: Math.round(avgDelay),
+          difficultyScore
+        };
+      })
+      .filter((item) => item.word)
+      .sort((a, b) => b.difficultyScore - a.difficultyScore)
+      .slice(0, 8);
+
+    return {
+      elapsedMs: finalElapsedMs,
+      backspaceCount: backspaceCountRef.current,
+      keyMetrics: keyMetricsRef.current,
+      hardWords
+    };
+  }
 
   useEffect(() => {
     if (!startTime) return undefined;
@@ -58,7 +106,8 @@ function TypingBox({
         wpm: Math.round(wpm),
         accuracy: Math.round(accuracy),
         timeMs: timeLimitSec * 1000,
-        completedText: false
+        completedText: false,
+        telemetry: buildTelemetry(timeLimitSec * 1000)
       });
     }, Math.max(0, timeLimitSec * 1000 - elapsedMs));
 
@@ -73,7 +122,13 @@ function TypingBox({
     if (!text || currentIndex < text.length || completeRef.current || timedMode) return;
     completeRef.current = true;
     const finalTime = startTime ? Date.now() - startTime : 0;
-    onComplete?.({ wpm: Math.round(wpm), accuracy: Math.round(accuracy), timeMs: finalTime, completedText: true });
+    onComplete?.({
+      wpm: Math.round(wpm),
+      accuracy: Math.round(accuracy),
+      timeMs: finalTime,
+      completedText: true,
+      telemetry: buildTelemetry(finalTime)
+    });
   }, [text, currentIndex, startTime, wpm, accuracy, onComplete, timedMode]);
 
   useEffect(() => {
@@ -90,6 +145,7 @@ function TypingBox({
 
       if (allowBackspace && e.key === "Backspace" && currentIndex > 0) {
         e.preventDefault();
+        backspaceCountRef.current += 1;
         const previousState = charStates[currentIndex - 1];
         setCharStates((prev) => {
           const next = [...prev];
@@ -107,7 +163,27 @@ function TypingBox({
       if (e.key.length !== 1 || currentIndex >= text.length) return;
 
       e.preventDefault();
+      const now = Date.now();
+      const delayMs = lastInputTsRef.current ? now - lastInputTsRef.current : 0;
+      lastInputTsRef.current = now;
+
+      const keyLabel = e.key === " " ? "Space" : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+      if (!keyMetricsRef.current[keyLabel]) {
+        keyMetricsRef.current[keyLabel] = { count: 0, totalDelay: 0, avgDelay: 0 };
+      }
+      keyMetricsRef.current[keyLabel].count += 1;
+      keyMetricsRef.current[keyLabel].totalDelay += delayMs;
+      keyMetricsRef.current[keyLabel].avgDelay =
+        keyMetricsRef.current[keyLabel].totalDelay / keyMetricsRef.current[keyLabel].count;
+
       const isCorrect = e.key === text[currentIndex];
+      keyEventsRef.current.push({
+        index: currentIndex,
+        expected: text[currentIndex],
+        typed: e.key,
+        isCorrect,
+        delayMs
+      });
       setCharStates((prev) => {
         const next = [...prev];
         next[currentIndex] = isCorrect ? "correct" : "error";

@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlayerCard from "../components/PlayerCard";
+import KeyboardHeatmap from "../components/KeyboardHeatmap";
+import SpeedTimelineChart from "../components/SpeedTimelineChart";
 import { socket } from "../socket";
 
 function Results() {
@@ -12,6 +14,8 @@ function Results() {
   const results = state.results || [];
   const currentUser = state.currentUser || "You";
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room");
+  const soloTelemetry = state.soloTelemetry || null;
+  const speedTimeline = state.speedTimeline || {};
 
   const soloMeta = useMemo(() => {
     if (mode !== "solo" || !state.difficulty) return null;
@@ -50,11 +54,37 @@ function Results() {
         </div>
       )}
 
+      {mode === "solo" && soloTelemetry && (
+        <section className="panel">
+          <h3>Solo Stats</h3>
+          <p>Backspace usage: {soloTelemetry.backspaceCount}</p>
+          <h4>Keyboard Error/Speed Heatmap</h4>
+          <KeyboardHeatmap keyMetrics={soloTelemetry.keyMetrics || {}} />
+          <h4>Hard Word List</h4>
+          <div className="hard-word-list">
+            {(soloTelemetry.hardWords || []).map((item) => (
+              <div key={`${item.word}-${item.errors}-${item.avgDelay}`} className="hard-word-item">
+                <span>{item.word}</span>
+                <span>{item.errors} errors</span>
+                <span>{item.avgDelay}ms avg</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="results-grid">
         {results.map((player) => (
           <PlayerCard key={player.username} player={player} highlighted={player.username === currentUser} />
         ))}
       </section>
+
+      {mode === "multiplayer" && (
+        <section className="panel">
+          <h3>Speed Timeline</h3>
+          <SpeedTimelineChart timelineMap={speedTimeline} />
+        </section>
+      )}
 
       <div className="button-wrap">
         {mode === "solo" && (
