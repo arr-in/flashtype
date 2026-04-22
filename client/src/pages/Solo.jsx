@@ -7,22 +7,24 @@ const difficulties = ["beginner", "easy", "medium", "hard", "expert"];
 
 function Solo() {
   const navigate = useNavigate();
-  const [difficulty, setDifficulty] = useState("");
+  const [difficulty, setDifficulty] = useState("medium");
   const [timeLimit, setTimeLimit] = useState(60);
   const [text, setText] = useState("");
+  const [sessionId, setSessionId] = useState(0);
 
   const difficultyLabel = useMemo(() => {
     if (!difficulty) return "";
     return `${difficulty[0].toUpperCase()}${difficulty.slice(1)}`;
   }, [difficulty]);
 
-  function selectDifficulty(level) {
-    setDifficulty(level);
-    setText(getSoloTimedText(level, timeLimit));
+  function startTest() {
+    setText(getSoloTimedText(difficulty, timeLimit));
+    setSessionId((id) => id + 1);
   }
 
-  function refreshText(level = difficulty, duration = timeLimit) {
+  function restartTest(level = difficulty, duration = timeLimit) {
     setText(getSoloTimedText(level, duration));
+    setSessionId((id) => id + 1);
   }
 
   function handleComplete(stats) {
@@ -58,46 +60,66 @@ function Solo() {
         </button>
       </div>
 
-      {!difficulty && (
+      {!text && (
         <div className="button-wrap">
           {difficulties.map((level) => (
-            <button key={level} type="button" onClick={() => selectDifficulty(level)}>
+            <button
+              key={level}
+              type="button"
+              onClick={() => setDifficulty(level)}
+              className={difficulty === level ? "selection-button-active" : ""}
+            >
               {level[0].toUpperCase() + level.slice(1)}
             </button>
           ))}
         </div>
       )}
 
-      {!difficulty && (
+      {!text && (
         <div className="button-wrap">
           {[30, 60, 90].map((sec) => (
-            <button key={sec} type="button" onClick={() => setTimeLimit(sec)}>
+            <button
+              key={sec}
+              type="button"
+              onClick={() => setTimeLimit(sec)}
+              className={timeLimit === sec ? "selection-button-active" : ""}
+            >
               {sec}s
             </button>
           ))}
         </div>
       )}
 
-      {difficulty && text && (
+      {!text && (
+        <div className="button-wrap">
+          <button type="button" className="flash-start-button" onClick={startTest}>
+            Flash Start
+          </button>
+        </div>
+      )}
+
+      {text && (
         <section>
           <div className="solo-header">
             <span>
               Difficulty: {difficultyLabel} | Timer: {timeLimit}s
             </span>
-            <button type="button" onClick={() => refreshText()}>
+            <button type="button" onClick={() => restartTest()}>
               Shuffle Text
             </button>
           </div>
           <TypingBox
+            key={sessionId}
             text={text}
             onComplete={handleComplete}
             allowBackspace
             enabled
             timedMode
             timeLimitSec={timeLimit}
+            onRestart={() => restartTest()}
           />
           <div className="button-wrap">
-            <button type="button" onClick={() => setDifficulty("")}>
+            <button type="button" onClick={() => setText("")}>
               Change Settings
             </button>
           </div>

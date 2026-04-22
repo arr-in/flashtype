@@ -10,7 +10,8 @@ function TypingBox({
   timedMode = false,
   timeLimitSec = 60,
   disqualifyAfterWrongWords = 0,
-  onDisqualify
+  onDisqualify,
+  onRestart
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
@@ -75,6 +76,12 @@ function TypingBox({
   useEffect(() => {
     function handleKeyDown(e) {
       if (!enabled || completeRef.current || !text) return;
+
+      if ((e.key === "r" || e.key === "R") && onRestart) {
+        e.preventDefault();
+        onRestart();
+        return;
+      }
 
       if (!startTime && e.key.length === 1) setStartTime(Date.now());
 
@@ -144,7 +151,8 @@ function TypingBox({
     disqualifyAfterWrongWords,
     onDisqualify,
     wpm,
-    accuracy
+    accuracy,
+    onRestart
   ]);
 
   const elapsedSeconds = useMemo(() => {
@@ -172,6 +180,8 @@ function TypingBox({
         <span>Accuracy: {Math.round(accuracy)}%</span>
       </div>
 
+      <div className="typing-timer-large">{timedMode ? `${remainingSeconds}s` : `${elapsedSeconds}s`}</div>
+
       <div className="typing-text" role="textbox" aria-label="Typing workspace">
         {text.split("").map((char, index) => (
           <span key={`${char}-${index}`} className={`char ${charStates[index] || "untyped"}`}>
@@ -191,9 +201,9 @@ function TypingBox({
       </div>
 
       <div className="typing-subtext">
-        <span>{timedMode ? `Time Left: ${remainingSeconds}s` : `Time: ${elapsedSeconds}s`}</span>
         <span>Errors: {errorCount}</span>
         {disqualifyAfterWrongWords > 0 && <span>Wrong-word streak: {wrongWordStreak}</span>}
+        {onRestart && <span>Restart: press R</span>}
       </div>
     </div>
   );

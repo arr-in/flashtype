@@ -16,6 +16,7 @@ function Lobby() {
   const [readyPlayers, setReadyPlayers] = useState([]);
   const [raceSettings, setRaceSettings] = useState({
     difficulty: "hard",
+    timeLimit: 60,
     includeNumbers: true,
     includeSymbols: true,
     allowCaps: true,
@@ -215,6 +216,23 @@ function Lobby() {
                 </select>
               </div>
               <div className="settings-row">
+                <label htmlFor="timeLimit">Timer</label>
+                <select
+                  id="timeLimit"
+                  value={raceSettings.timeLimit}
+                  onChange={(e) =>
+                    setRaceSettings((prev) => ({
+                      ...prev,
+                      timeLimit: Number(e.target.value)
+                    }))
+                  }
+                >
+                  <option value={30}>30s</option>
+                  <option value={60}>60s</option>
+                  <option value={90}>90s</option>
+                </select>
+              </div>
+              <div className="settings-row">
                 <label>
                   <input
                     type="checkbox"
@@ -255,8 +273,8 @@ function Lobby() {
                   Allow capitals
                 </label>
               </div>
-              <button type="button" onClick={startRace} disabled={!canStartRace}>
-                Start Race
+              <button type="button" className="flash-start-button" onClick={startRace} disabled={!canStartRace}>
+                Flash Launch
               </button>
               {roomStatus === "finished" && !allReady && <p>Waiting for everyone to click Play Again.</p>}
             </>
