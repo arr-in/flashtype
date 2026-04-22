@@ -19,7 +19,7 @@ body {
 }
 
 .page {
-  max-width: 900px;
+  max-width: 1120px;
   margin: 0 auto;
   min-height: 100vh;
   padding: 24px;
@@ -135,6 +135,15 @@ select {
   margin-bottom: 0;
   color: #aaaaaa;
   font-size: 14px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.typing-restart-button {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 13px;
 }
 
 .typing-timer-large {
@@ -152,6 +161,13 @@ select {
   white-space: pre-wrap;
   word-break: break-word;
   min-height: 220px;
+  max-height: 6.4em;
+  overflow: hidden;
+}
+
+.typing-text-inner {
+  will-change: transform;
+  transition: transform 0.18s ease-out;
 }
 
 .char {

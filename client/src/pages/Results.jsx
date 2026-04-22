@@ -25,7 +25,15 @@ function Results() {
   }
 
   function playAgain() {
-    if (mode === "solo") return navigate("/solo");
+    if (mode === "solo") {
+      return navigate("/solo", {
+        state: {
+          retryWithSameSettings: true,
+          difficulty: state.difficulty,
+          timeLimit: state.timeLimit
+        }
+      });
+    }
     socket.emit("play_again", { roomCode, username: sessionStorage.getItem("flash_username") });
     navigate("/lobby");
   }
@@ -59,7 +67,7 @@ function Results() {
             Play Again
           </button>
         )}
-        {mode === "multiplayer" && <p>All players must click Play Again before host can start next race.</p>}
+        {mode === "multiplayer" && <p>Host can start when at least 2 players are ready.</p>}
         <button type="button" onClick={backHome}>
           Back to Home
         </button>

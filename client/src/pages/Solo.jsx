@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import TypingBox from "../components/TypingBox";
 import { getSoloTimedText } from "../lib/textBank";
 
@@ -7,6 +7,7 @@ const difficulties = ["beginner", "easy", "medium", "hard", "expert"];
 
 function Solo() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [difficulty, setDifficulty] = useState("medium");
   const [timeLimit, setTimeLimit] = useState(60);
   const [text, setText] = useState("");
@@ -26,6 +27,18 @@ function Solo() {
     setText(getSoloTimedText(level, duration));
     setSessionId((id) => id + 1);
   }
+
+  useEffect(() => {
+    const retryState = location.state;
+    if (!retryState || !retryState.retryWithSameSettings) return;
+    if (retryState.difficulty) setDifficulty(retryState.difficulty);
+    if (retryState.timeLimit) setTimeLimit(retryState.timeLimit);
+    const nextDifficulty = retryState.difficulty || difficulty;
+    const nextTimeLimit = Number(retryState.timeLimit) || timeLimit;
+    setText(getSoloTimedText(nextDifficulty, nextTimeLimit));
+    setSessionId((id) => id + 1);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state]);
 
   function handleComplete(stats) {
     const key = `flashType_best_${difficulty}_${timeLimit}s`;

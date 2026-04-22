@@ -114,8 +114,9 @@ function Lobby() {
   }
 
   const inWaitingRoom = Boolean(roomCode);
-  const allReady = players.length > 0 && players.every((p) => readyPlayers.includes(p.username));
-  const canStartRace = players.length >= 2 && (roomStatus !== "finished" || allReady);
+  const readyCount = readyPlayers.length;
+  const canStartRace =
+    roomStatus === "finished" ? readyCount >= 2 : players.length >= 2;
 
   return (
     <main className="page">
@@ -276,10 +277,17 @@ function Lobby() {
               <button type="button" className="flash-start-button" onClick={startRace} disabled={!canStartRace}>
                 Flash Launch
               </button>
-              {roomStatus === "finished" && !allReady && <p>Waiting for everyone to click Play Again.</p>}
+              {roomStatus === "finished" && (
+                <p>
+                  Replay Ready: {readyCount}/5 {readyCount < 2 ? "(need at least 2)" : "(host can start now)"}
+                </p>
+              )}
             </>
           ) : (
-            <p>Waiting for host to start...</p>
+            <p>
+              Waiting for host to start...{" "}
+              {roomStatus === "finished" ? `Replay Ready: ${readyCount}/5` : ""}
+            </p>
           )}
         </section>
       )}

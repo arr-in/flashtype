@@ -38,6 +38,7 @@ function createRoom(hostUsername, hostSocketId) {
     text: "",
     settings: {
       difficulty: "hard",
+      timeLimit: 60,
       includeNumbers: true,
       includeSymbols: true,
       allowCaps: true,
@@ -132,13 +133,14 @@ function buildResults(roomCode) {
   const room = rooms[roomCode];
   if (!room) return [];
   const raceDurationMs = 60000;
+  const roomDurationMs = Number(room.settings?.timeLimit || 60) * 1000;
 
   function calculateScore(player) {
     const progressScore = (player.progress || 0) * 12;
     const speedScore = (player.wpm || 0) * 10;
     const accuracyScore = (player.accuracy || 0) * 8;
     const completionBonus = player.finished ? 2000 : 0;
-    const timeValue = player.finished ? player.finishTime || raceDurationMs : raceDurationMs;
+    const timeValue = player.finished ? player.finishTime || roomDurationMs : roomDurationMs;
     const timePenalty = timeValue / 120;
     return Math.max(0, Math.round(progressScore + speedScore + accuracyScore + completionBonus - timePenalty));
   }
@@ -148,7 +150,7 @@ function buildResults(roomCode) {
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       if (a.disqualified !== b.disqualified) return a.disqualified ? 1 : -1;
-      if (a.finished && b.finished) return (a.finishTime || raceDurationMs) - (b.finishTime || raceDurationMs);
+      if (a.finished && b.finished) return (a.finishTime || roomDurationMs) - (b.finishTime || roomDurationMs);
       if (a.finished !== b.finished) return a.finished ? -1 : 1;
       return b.progress - a.progress;
     })
@@ -194,6 +196,7 @@ function startRace(roomCode, settings = {}) {
 
   room.settings = {
     difficulty: settings.difficulty || room.settings?.difficulty || "hard",
+    timeLimit: Number(settings.timeLimit || room.settings?.timeLimit || 60),
     includeNumbers: settings.includeNumbers ?? room.settings?.includeNumbers ?? true,
     includeSymbols: settings.includeSymbols ?? room.settings?.includeSymbols ?? true,
     allowCaps: settings.allowCaps ?? room.settings?.allowCaps ?? true,

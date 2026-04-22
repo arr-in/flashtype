@@ -21,7 +21,9 @@ function TypingBox({
   const [wrongWordStreak, setWrongWordStreak] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [lineOffsetPx, setLineOffsetPx] = useState(0);
   const completeRef = useRef(false);
+  const textViewportRef = useRef(null);
 
   const typedCount = currentIndex;
   const accuracy = typedCount > 0 ? (correctCount / typedCount) * 100 : 100;
@@ -36,6 +38,7 @@ function TypingBox({
     setWrongWordStreak(0);
     setStartTime(null);
     setElapsedMs(0);
+    setLineOffsetPx(0);
     completeRef.current = false;
   }, [text]);
 
@@ -77,7 +80,7 @@ function TypingBox({
     function handleKeyDown(e) {
       if (!enabled || completeRef.current || !text) return;
 
-      if ((e.key === "r" || e.key === "R") && onRestart) {
+      if (e.key === "Escape" && onRestart) {
         e.preventDefault();
         onRestart();
         return;
@@ -173,6 +176,19 @@ function TypingBox({
     return map;
   }, [ghostCursors, text.length]);
 
+  useEffect(() => {
+    if (!textViewportRef.current || currentIndex <= 0) return;
+    const viewport = textViewportRef.current;
+    const activeChar = viewport.querySelector(`[data-char-index="${Math.max(0, currentIndex - 1)}"]`);
+    if (!activeChar) return;
+
+    const viewportStyle = window.getComputedStyle(viewport);
+    const lineHeight = parseFloat(viewportStyle.lineHeight) || 48;
+    const currentLine = Math.floor(activeChar.offsetTop / lineHeight);
+    const nextOffset = currentLine > 3 ? (currentLine - 3) * lineHeight : 0;
+    if (nextOffset !== lineOffsetPx) setLineOffsetPx(nextOffset);
+  }, [currentIndex, lineOffsetPx]);
+
   return (
     <div className={`typing-box ${enabled ? "" : "typing-box-disabled"}`}>
       <div className="typing-metrics">
@@ -182,28 +198,39 @@ function TypingBox({
 
       <div className="typing-timer-large">{timedMode ? `${remainingSeconds}s` : `${elapsedSeconds}s`}</div>
 
-      <div className="typing-text" role="textbox" aria-label="Typing workspace">
-        {text.split("").map((char, index) => (
-          <span key={`${char}-${index}`} className={`char ${charStates[index] || "untyped"}`}>
-            {!!ghostCursorByIndex[index] &&
-              ghostCursorByIndex[index].map((cursor) => (
-                <span
-                  key={`${cursor.username}-${index}`}
-                  className="ghost-cursor"
-                  style={{ borderColor: cursor.color || "#6aa0ff" }}
-                  title={cursor.username}
-                />
-              ))}
-            {index === currentIndex && enabled && <span className="typing-cursor" />}
-            {char}
-          </span>
-        ))}
+      <div ref={textViewportRef} className="typing-text" role="textbox" aria-label="Typing workspace">
+        <div className="typing-text-inner" style={{ transform: `translateY(-${lineOffsetPx}px)` }}>
+          {text.split("").map((char, index) => (
+            <span
+              key={`${char}-${index}`}
+              data-char-index={index}
+              className={`char ${charStates[index] || "untyped"}`}
+            >
+              {!!ghostCursorByIndex[index] &&
+                ghostCursorByIndex[index].map((cursor) => (
+                  <span
+                    key={`${cursor.username}-${index}`}
+                    className="ghost-cursor"
+                    style={{ borderColor: cursor.color || "#6aa0ff" }}
+                    title={cursor.username}
+                  />
+                ))}
+              {index === currentIndex && enabled && <span className="typing-cursor" />}
+              {char}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="typing-subtext">
         <span>Errors: {errorCount}</span>
         {disqualifyAfterWrongWords > 0 && <span>Wrong-word streak: {wrongWordStreak}</span>}
-        {onRestart && <span>Restart: press R</span>}
+        {onRestart && <span>Shortcut: Esc</span>}
+        {onRestart && (
+          <button type="button" className="typing-restart-button" onClick={onRestart}>
+            Restart Test
+          </button>
+        )}
       </div>
     </div>
   );

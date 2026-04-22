@@ -17,8 +17,7 @@ const {
   setRaceFinished,
   setRoomTimeout,
   resetRoomForReplay,
-  setPlayerReadyForReplay,
-  areAllPlayersReady
+  setPlayerReadyForReplay
 } = require("./roomManager");
 
 const PORT = process.env.PORT || 3001;
@@ -146,8 +145,11 @@ io.on("connection", (socket) => {
     const room = getRoom(roomCode);
     if (!room) return socket.emit("room_error", { message: "Room not found." });
     if (room.host !== username) return socket.emit("room_error", { message: "Only the host can start the race." });
-    if (room.status === "finished" && !areAllPlayersReady(roomCode)) {
-      return socket.emit("room_error", { message: "All players must click Play Again first." });
+    if (room.status === "finished") {
+      const readyCount = room.readyPlayers?.length || 0;
+      if (readyCount < 2) {
+        return socket.emit("room_error", { message: "At least 2 players must click Play Again first." });
+      }
     }
 
     const startResult = startRace(roomCode, settings || {});
@@ -174,7 +176,10 @@ io.on("connection", (socket) => {
           disqualified: Boolean(p.disqualified)
         }))
       });
-      const timeout = setTimeout(() => emitRaceOver(roomCode), 60000);
+      const timeout = setTimeout(
+        () => emitRaceOver(roomCode),
+        Number(startResult.room.settings?.timeLimit || 60) * 1000
+      );
       setRoomTimeout(roomCode, timeout);
     }, 4000);
   });
