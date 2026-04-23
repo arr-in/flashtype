@@ -34,7 +34,8 @@ function Results() {
         state: {
           retryWithSameSettings: true,
           difficulty: state.difficulty,
-          timeLimit: state.timeLimit
+          timeLimit: state.timeLimit,
+          fontSize: state.fontSize
         }
       });
     }

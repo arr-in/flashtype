@@ -29,13 +29,16 @@ function Solo() {
     setSessionId((id) => id + 1);
   }
 
+  // On retry from Results page — restore ALL settings including fontSize
   useEffect(() => {
     const retryState = location.state;
     if (!retryState || !retryState.retryWithSameSettings) return;
-    if (retryState.difficulty) setDifficulty(retryState.difficulty);
-    if (retryState.timeLimit) setTimeLimit(retryState.timeLimit);
     const nextDifficulty = retryState.difficulty || difficulty;
     const nextTimeLimit = Number(retryState.timeLimit) || timeLimit;
+    const nextFontSize = retryState.fontSize || fontSize;
+    if (retryState.difficulty) setDifficulty(nextDifficulty);
+    if (retryState.timeLimit) setTimeLimit(nextTimeLimit);
+    if (retryState.fontSize) setFontSize(nextFontSize);
     setText(getSoloTimedText(nextDifficulty, nextTimeLimit));
     setSessionId((id) => id + 1);
     navigate(location.pathname, { replace: true, state: null });
@@ -51,6 +54,7 @@ function Solo() {
         mode: "solo",
         difficulty,
         timeLimit,
+        fontSize,           // ← pass fontSize so Retry can restore it
         soloTelemetry: stats.telemetry || null,
         currentUser: "You",
         results: [
@@ -66,6 +70,7 @@ function Solo() {
     });
   }
 
+  // ── Setup screen ──────────────────────────────────────────────
   if (!text) {
     return (
       <main className="solo-setup-page">
@@ -136,8 +141,18 @@ function Solo() {
     );
   }
 
+  // ── Typing screen ─────────────────────────────────────────────
   return (
     <main className="solo-typing-page">
+      {/* Back button visible during the test */}
+      <button
+        type="button"
+        className="solo-back-btn"
+        onClick={() => setText("")}
+      >
+        ← Back
+      </button>
+
       <TypingBox
         key={sessionId}
         text={text}
@@ -147,6 +162,7 @@ function Solo() {
         timedMode
         timeLimitSec={timeLimit}
         onRestart={() => restartTest()}
+        onEndEarly={handleComplete}
         collectTelemetry
         difficultyLabel={difficultyLabel}
         fontSize={fontSize}

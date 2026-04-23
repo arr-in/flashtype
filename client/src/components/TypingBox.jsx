@@ -20,6 +20,7 @@ function TypingBox({
   disqualifyAfterWrongWords = 0,
   onDisqualify,
   onRestart,
+  onEndEarly,
   collectTelemetry = false,
   difficultyLabel = "",
   fontSize = "medium"
@@ -272,18 +273,30 @@ function TypingBox({
     return map;
   }, [ghostCursors, text.length]);
 
-  // Slide lines: keep cursor row at line 2 (0-indexed) of the 4 visible lines
+  // Slide lines smoothly — cursor stays on line 2 of 4 visible
   useEffect(() => {
-    if (!textViewportRef.current || currentIndex <= 0) return;
+    if (!textViewportRef.current) return;
     const viewport = textViewportRef.current;
-    const activeChar = viewport.querySelector(`[data-char-index="${Math.max(0, currentIndex - 1)}"]`);
+    const idx = Math.max(0, currentIndex - 1);
+    const activeChar = viewport.querySelector(`[data-char-index="${idx}"]`);
     if (!activeChar) return;
-
     const currentLine = Math.floor(activeChar.offsetTop / lineHeightPx);
-    // Start scrolling once we're past line 1 so the cursor stays on line 2
     const nextOffset = currentLine > 1 ? (currentLine - 1) * lineHeightPx : 0;
-    if (nextOffset !== lineOffsetPx) setLineOffsetPx(nextOffset);
-  }, [currentIndex, lineOffsetPx, lineHeightPx]);
+    setLineOffsetPx(nextOffset);
+  }, [currentIndex, lineHeightPx]);
+
+  function handleEndEarly() {
+    if (completeRef.current || !hasStarted) return;
+    completeRef.current = true;
+    const finalTime = startTime ? Date.now() - startTime : 0;
+    onEndEarly?.({
+      wpm: Math.round(wpm),
+      accuracy: Math.round(accuracy),
+      timeMs: finalTime,
+      completedText: false,
+      telemetry: buildTelemetry(finalTime)
+    });
+  }
 
   return (
     <div className={`typing-box-fullscreen ${enabled ? "" : "typing-box-disabled"}`}>
@@ -339,12 +352,21 @@ function TypingBox({
       </div>
 
       {/* Bottom bar — only shown while typing */}
-      {hasStarted && onRestart && (
+      {hasStarted && (
         <div className="typing-bottombar">
           <span className="typing-errors-count">Errors: {errorCount}</span>
-          <button type="button" className="typing-restart-button" onClick={onRestart}>
-            Restart  <kbd>Esc</kbd>
-          </button>
+          <div className="typing-bottombar-actions">
+            {onEndEarly && (
+              <button type="button" className="typing-end-button" onClick={handleEndEarly}>
+                End Test
+              </button>
+            )}
+            {onRestart && (
+              <button type="button" className="typing-restart-button" onClick={onRestart}>
+                Restart <kbd>Esc</kbd>
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
