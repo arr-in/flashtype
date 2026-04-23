@@ -10,6 +10,7 @@ function Solo() {
   const location = useLocation();
   const [difficulty, setDifficulty] = useState("medium");
   const [timeLimit, setTimeLimit] = useState(60);
+  const [fontSize, setFontSize] = useState("medium");
   const [text, setText] = useState("");
   const [sessionId, setSessionId] = useState(0);
 
@@ -98,7 +99,7 @@ function Solo() {
           <div className="solo-setup-group">
             <p className="solo-setup-label">Duration</p>
             <div className="solo-setup-buttons">
-              {[30, 60, 90].map((sec) => (
+              {[15, 30, 60, 90].map((sec) => (
                 <button
                   key={sec}
                   type="button"
@@ -106,6 +107,22 @@ function Solo() {
                   className={timeLimit === sec ? "selection-button-active" : ""}
                 >
                   {sec}s
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="solo-setup-group">
+            <p className="solo-setup-label">Text Size</p>
+            <div className="solo-setup-buttons">
+              {["small", "medium", "large"].map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setFontSize(size)}
+                  className={fontSize === size ? "selection-button-active" : ""}
+                >
+                  {size[0].toUpperCase() + size.slice(1)}
                 </button>
               ))}
             </div>
@@ -132,6 +149,7 @@ function Solo() {
         onRestart={() => restartTest()}
         collectTelemetry
         difficultyLabel={difficultyLabel}
+        fontSize={fontSize}
       />
     </main>
   );

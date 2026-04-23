@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const LINE_HEIGHT_PX = 52; // matches CSS font-size 32px * line-height 1.6
+const SIZE_CONFIG = {
+  small:  { cls: "typing-size-small",  lineH: 38 },
+  medium: { cls: "typing-size-medium", lineH: 52 },
+  large:  { cls: "typing-size-large",  lineH: 68 },
+};
+
 const VISIBLE_LINES = 4;
 
 function TypingBox({
@@ -16,7 +21,8 @@ function TypingBox({
   onDisqualify,
   onRestart,
   collectTelemetry = false,
-  difficultyLabel = ""
+  difficultyLabel = "",
+  fontSize = "medium"
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
@@ -251,6 +257,7 @@ function TypingBox({
     onRestart
   ]);
 
+  const { cls: sizeClass, lineH: lineHeightPx } = SIZE_CONFIG[fontSize] || SIZE_CONFIG.medium;
   const remainingSeconds = Math.max(0, timeLimitSec - Math.floor(elapsedMs / 1000));
 
   const ghostCursorByIndex = useMemo(() => {
@@ -272,11 +279,11 @@ function TypingBox({
     const activeChar = viewport.querySelector(`[data-char-index="${Math.max(0, currentIndex - 1)}"]`);
     if (!activeChar) return;
 
-    const currentLine = Math.floor(activeChar.offsetTop / LINE_HEIGHT_PX);
+    const currentLine = Math.floor(activeChar.offsetTop / lineHeightPx);
     // Start scrolling once we're past line 1 so the cursor stays on line 2
-    const nextOffset = currentLine > 1 ? (currentLine - 1) * LINE_HEIGHT_PX : 0;
+    const nextOffset = currentLine > 1 ? (currentLine - 1) * lineHeightPx : 0;
     if (nextOffset !== lineOffsetPx) setLineOffsetPx(nextOffset);
-  }, [currentIndex, lineOffsetPx]);
+  }, [currentIndex, lineOffsetPx, lineHeightPx]);
 
   return (
     <div className={`typing-box-fullscreen ${enabled ? "" : "typing-box-disabled"}`}>
@@ -303,10 +310,10 @@ function TypingBox({
       {/* Text area — always visible */}
       <div
         ref={textViewportRef}
-        className={`typing-text-full ${!hasStarted ? "typing-text-idle" : ""}`}
+        className={`typing-text-full ${sizeClass} ${!hasStarted ? "typing-text-idle" : ""}`}
         role="textbox"
         aria-label="Typing workspace"
-        style={{ "--line-h": `${LINE_HEIGHT_PX}px`, "--visible-lines": VISIBLE_LINES }}
+        style={{ height: `${lineHeightPx * VISIBLE_LINES}px` }}
       >
         <div className="typing-text-inner" style={{ transform: `translateY(-${lineOffsetPx}px)` }}>
           {text.split("").map((char, index) => (

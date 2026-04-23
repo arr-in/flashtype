@@ -49,6 +49,7 @@ export function getRandomSoloText(difficulty = "medium", previousText = "") {
 }
 
 const timedWordTargets = {
+  15: 120,
   30: 220,
   60: 380,
   90: 540

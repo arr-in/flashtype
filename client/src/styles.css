@@ -259,16 +259,30 @@ select {
 
 /* ── Typing text area ── */
 .typing-text-full {
-  font-size: 32px;
-  line-height: 1.625; /* 52px per line */
   white-space: pre-wrap;
   word-break: break-word;
-  /* clip exactly 4 lines */
-  height: calc(52px * 4);
   overflow: hidden;
-  /* no border, no background */
   border: none;
   background: transparent;
+  /* default (medium) */
+  font-size: 32px;
+  line-height: 1.625;
+}
+
+/* Size variants — font-size and line-height only; height set inline */
+.typing-size-small {
+  font-size: 22px;
+  line-height: 1.727; /* 22 * 1.727 ≈ 38px */
+}
+
+.typing-size-medium {
+  font-size: 32px;
+  line-height: 1.625; /* 32 * 1.625 = 52px */
+}
+
+.typing-size-large {
+  font-size: 42px;
+  line-height: 1.619; /* 42 * 1.619 ≈ 68px */
 }
 
 .typing-text-full.typing-text-idle {
