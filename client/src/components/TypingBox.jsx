@@ -66,7 +66,7 @@ function TypingBox({
     });
 
     const words = text.split(/\s+/).filter(Boolean);
-    const hardWords = Object.entries(wordBuckets)
+    const allWordStats = Object.entries(wordBuckets)
       .map(([idx, bucket]) => {
         const word = words[Number(idx)] || "";
         const avgDelay = bucket.attempts ? bucket.delayTotal / bucket.attempts : 0;
@@ -78,14 +78,29 @@ function TypingBox({
           difficultyScore
         };
       })
-      .filter((item) => item.word)
+      .filter((item) => item.word);
+
+    // Calculate average delay across all words to identify slow ones
+    const totalAvgDelay = allWordStats.length > 0
+      ? allWordStats.reduce((sum, w) => sum + w.avgDelay, 0) / allWordStats.length
+      : 0;
+
+    // Only include words the user actually struggled with
+    const hardWords = allWordStats
+      .filter((item) => item.errors > 0 || item.avgDelay > totalAvgDelay * 1.3)
       .sort((a, b) => b.difficultyScore - a.difficultyScore)
       .slice(0, 8);
+
+    // Deep-clone keyMetrics so navigation doesn't lose data via stale ref
+    const clonedKeyMetrics = {};
+    for (const [k, v] of Object.entries(keyMetricsRef.current)) {
+      clonedKeyMetrics[k] = { ...v };
+    }
 
     return {
       elapsedMs: finalElapsedMs,
       backspaceCount: backspaceCountRef.current,
-      keyMetrics: keyMetricsRef.current,
+      keyMetrics: clonedKeyMetrics,
       hardWords
     };
   }

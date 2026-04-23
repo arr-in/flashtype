@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Countdown from "../components/Countdown";
 import RaceTrack from "../components/RaceTrack";
@@ -28,6 +28,8 @@ function Race() {
   const [showCountdown, setShowCountdown] = useState(true);
   const [typingEnabled, setTypingEnabled] = useState(false);
   const [players, setPlayers] = useState(state.players || []);
+  const raceStartRef = useRef(null);
+  const timelineRef = useRef({});
   const isHost = sessionStorage.getItem("flash_host") === "true";
 
   useEffect(() => {
@@ -45,6 +47,7 @@ function Race() {
         setTimeout(() => {
           setShowCountdown(false);
           setTypingEnabled(true);
+          raceStartRef.current = Date.now();
         }, 400);
       }
     }, 1000);
@@ -53,7 +56,23 @@ function Race() {
 
   useEffect(() => {
     function onPositionUpdate(payload) {
-      setPlayers(payload.players || []);
+      const nextPlayers = payload.players || [];
+      setPlayers(nextPlayers);
+      const prev = timelineRef.current || {};
+      {
+        const now = Date.now();
+        const raceStart = raceStartRef.current || now;
+        const next = { ...prev };
+        nextPlayers.forEach((player) => {
+          const existing = next[player.username] ? [...next[player.username]] : [];
+          existing.push({
+            t: now - raceStart,
+            wpm: Math.round(player.wpm || 0)
+          });
+          next[player.username] = existing.slice(-240);
+        });
+        timelineRef.current = next;
+      }
     }
 
     function onRaceOver(payload) {
@@ -63,7 +82,8 @@ function Race() {
           roomCode,
           currentUser: username,
           isHost: sessionStorage.getItem("flash_host") === "true",
-          results: payload.results || []
+          results: payload.results || [],
+          speedTimeline: timelineRef.current
         }
       });
     }

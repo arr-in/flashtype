@@ -59,17 +59,25 @@ function Results() {
           <h3>Solo Stats</h3>
           <p>Backspace usage: {soloTelemetry.backspaceCount}</p>
           <h4>Keyboard Error/Speed Heatmap</h4>
-          <KeyboardHeatmap keyMetrics={soloTelemetry.keyMetrics || {}} />
+          {soloTelemetry.keyMetrics && Object.keys(soloTelemetry.keyMetrics).length > 0 ? (
+            <KeyboardHeatmap keyMetrics={soloTelemetry.keyMetrics} />
+          ) : (
+            <p style={{ color: '#888', fontStyle: 'italic' }}>No key data recorded for this run.</p>
+          )}
           <h4>Hard Word List</h4>
-          <div className="hard-word-list">
-            {(soloTelemetry.hardWords || []).map((item) => (
-              <div key={`${item.word}-${item.errors}-${item.avgDelay}`} className="hard-word-item">
-                <span>{item.word}</span>
-                <span>{item.errors} errors</span>
-                <span>{item.avgDelay}ms avg</span>
-              </div>
-            ))}
-          </div>
+          {(soloTelemetry.hardWords || []).length > 0 ? (
+            <div className="hard-word-list">
+              {soloTelemetry.hardWords.map((item) => (
+                <div key={`${item.word}-${item.errors}-${item.avgDelay}`} className="hard-word-item">
+                  <span className="hard-word-name">{item.word}</span>
+                  <span className="hard-word-errors">{item.errors} error{item.errors !== 1 ? 's' : ''}</span>
+                  <span className="hard-word-delay">{item.avgDelay} ms avg</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#888', fontStyle: 'italic' }}>No hard words — great job!</p>
+          )}
         </section>
       )}
 
