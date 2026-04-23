@@ -141,18 +141,9 @@ function Solo() {
     );
   }
 
-  // ── Typing screen ─────────────────────────────────────────────
+  // ── Typing screen ───────────────────────────────────────────────────
   return (
     <main className="solo-typing-page">
-      {/* Back button visible during the test */}
-      <button
-        type="button"
-        className="solo-back-btn"
-        onClick={() => setText("")}
-      >
-        ← Back
-      </button>
-
       <TypingBox
         key={sessionId}
         text={text}
@@ -163,6 +154,7 @@ function Solo() {
         timeLimitSec={timeLimit}
         onRestart={() => restartTest()}
         onEndEarly={handleComplete}
+        onBack={() => setText("")}
         collectTelemetry
         difficultyLabel={difficultyLabel}
         fontSize={fontSize}

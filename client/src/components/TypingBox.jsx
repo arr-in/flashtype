@@ -21,6 +21,7 @@ function TypingBox({
   onDisqualify,
   onRestart,
   onEndEarly,
+  onBack,
   collectTelemetry = false,
   difficultyLabel = "",
   fontSize = "medium"
@@ -301,9 +302,14 @@ function TypingBox({
   return (
     <div className={`typing-box-fullscreen ${enabled ? "" : "typing-box-disabled"}`}>
 
-      {/* Pre-start prompt */}
+      {/* Pre-start prompt + Back button — hidden once typing starts */}
       {!hasStarted && (
         <div className="typing-prestart">
+          {onBack && (
+            <button type="button" className="solo-back-btn typing-back-btn" onClick={onBack}>
+              ← Back
+            </button>
+          )}
           <span className="typing-prestart-hint">Start typing to begin…</span>
           {difficultyLabel && (
             <span className="typing-prestart-meta">{difficultyLabel} · {timeLimitSec}s</span>
