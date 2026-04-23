@@ -46,11 +46,28 @@ function Results() {
     <main className="page">
       <h2>Results</h2>
 
+      {mode === "solo" && results[0] && (
+        <div className="solo-stats-hero">
+          <div className="solo-stat-card">
+            <span className="solo-stat-value">{results[0].wpm}</span>
+            <span className="solo-stat-label">WPM</span>
+          </div>
+          <div className="solo-stat-card">
+            <span className="solo-stat-value">{results[0].accuracy}%</span>
+            <span className="solo-stat-label">Accuracy</span>
+          </div>
+          <div className="solo-stat-card">
+            <span className="solo-stat-value">{(results[0].timeMs / 1000).toFixed(1)}s</span>
+            <span className="solo-stat-label">Time</span>
+          </div>
+        </div>
+      )}
+
       {soloMeta && (
-        <div className="panel">
-          <p>Difficulty: {soloMeta.difficulty}</p>
-          <p>Timer: {soloMeta.timeLimit}s</p>
-          <p>Personal Best: {soloMeta.personalBest} WPM</p>
+        <div className="panel solo-meta-row">
+          <span>Difficulty: {soloMeta.difficulty}</span>
+          <span>Timer: {soloMeta.timeLimit}s</span>
+          <span>Personal Best: {soloMeta.personalBest} WPM</span>
         </div>
       )}
 
@@ -81,11 +98,13 @@ function Results() {
         </section>
       )}
 
-      <section className="results-grid">
-        {results.map((player) => (
-          <PlayerCard key={player.username} player={player} highlighted={player.username === currentUser} />
-        ))}
-      </section>
+      {mode === "multiplayer" && (
+        <section className="results-grid">
+          {results.map((player) => (
+            <PlayerCard key={player.username} player={player} highlighted={player.username === currentUser} />
+          ))}
+        </section>
+      )}
 
       {mode === "multiplayer" && (
         <section className="panel">

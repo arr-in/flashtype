@@ -309,6 +309,47 @@ select {
   margin: 14px 0;
 }
 
+.solo-stats-hero {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 20px 0;
+}
+
+.solo-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px 36px;
+  min-width: 140px;
+}
+
+.solo-stat-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #e2b714;
+  line-height: 1.1;
+}
+
+.solo-stat-label {
+  font-size: 14px;
+  color: #888;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.solo-meta-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 14px;
+  color: #aaa;
+}
+
 .player-card {
   border: 1px solid #2a2a2a;
   background: #111;
