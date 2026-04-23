@@ -65,81 +65,74 @@ function Solo() {
     });
   }
 
-  return (
-    <main className="page">
-      <div className="top-row">
-        <h2>Solo Practice</h2>
-        <button type="button" onClick={() => navigate("/")}>
-          Back
+  if (!text) {
+    return (
+      <main className="solo-setup-page">
+        <button
+          type="button"
+          className="solo-back-btn"
+          onClick={() => navigate("/")}
+        >
+          ← Back
         </button>
-      </div>
 
-      {!text && (
-        <div className="button-wrap">
-          {difficulties.map((level) => (
-            <button
-              key={level}
-              type="button"
-              onClick={() => setDifficulty(level)}
-              className={difficulty === level ? "selection-button-active" : ""}
-            >
-              {level[0].toUpperCase() + level.slice(1)}
-            </button>
-          ))}
-        </div>
-      )}
+        <div className="solo-setup-center">
+          <h1 className="solo-setup-title">Solo Practice</h1>
 
-      {!text && (
-        <div className="button-wrap">
-          {[30, 60, 90].map((sec) => (
-            <button
-              key={sec}
-              type="button"
-              onClick={() => setTimeLimit(sec)}
-              className={timeLimit === sec ? "selection-button-active" : ""}
-            >
-              {sec}s
-            </button>
-          ))}
-        </div>
-      )}
+          <div className="solo-setup-group">
+            <p className="solo-setup-label">Difficulty</p>
+            <div className="solo-setup-buttons">
+              {difficulties.map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setDifficulty(level)}
+                  className={difficulty === level ? "selection-button-active" : ""}
+                >
+                  {level[0].toUpperCase() + level.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {!text && (
-        <div className="button-wrap">
-          <button type="button" className="flash-start-button" onClick={startTest}>
+          <div className="solo-setup-group">
+            <p className="solo-setup-label">Duration</p>
+            <div className="solo-setup-buttons">
+              {[30, 60, 90].map((sec) => (
+                <button
+                  key={sec}
+                  type="button"
+                  onClick={() => setTimeLimit(sec)}
+                  className={timeLimit === sec ? "selection-button-active" : ""}
+                >
+                  {sec}s
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button type="button" className="flash-start-button solo-start-btn" onClick={startTest}>
             Flash Start
           </button>
         </div>
-      )}
+      </main>
+    );
+  }
 
-      {text && (
-        <section>
-          <div className="solo-header">
-            <span>
-              Difficulty: {difficultyLabel} | Timer: {timeLimit}s
-            </span>
-            <button type="button" onClick={() => restartTest()}>
-              Shuffle Text
-            </button>
-          </div>
-          <TypingBox
-            key={sessionId}
-            text={text}
-            onComplete={handleComplete}
-            allowBackspace
-            enabled
-            timedMode
-            timeLimitSec={timeLimit}
-            onRestart={() => restartTest()}
-            collectTelemetry
-          />
-          <div className="button-wrap">
-            <button type="button" onClick={() => setText("")}>
-              Change Settings
-            </button>
-          </div>
-        </section>
-      )}
+  return (
+    <main className="solo-typing-page">
+      <TypingBox
+        key={sessionId}
+        text={text}
+        onComplete={handleComplete}
+        allowBackspace
+        enabled
+        timedMode
+        timeLimitSec={timeLimit}
+        onRestart={() => restartTest()}
+        collectTelemetry
+        difficultyLabel={difficultyLabel}
+      />
     </main>
   );
 }

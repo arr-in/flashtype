@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+const LINE_HEIGHT_PX = 52; // matches CSS font-size 32px * line-height 1.6
+const VISIBLE_LINES = 4;
+
 function TypingBox({
   text,
   onComplete,
@@ -12,7 +15,8 @@ function TypingBox({
   disqualifyAfterWrongWords = 0,
   onDisqualify,
   onRestart,
-  collectTelemetry = false
+  collectTelemetry = false,
+  difficultyLabel = ""
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [charStates, setCharStates] = useState([]);
@@ -30,6 +34,7 @@ function TypingBox({
   const keyEventsRef = useRef([]);
   const lastInputTsRef = useRef(null);
 
+  const hasStarted = startTime !== null;
   const typedCount = currentIndex;
   const accuracy = typedCount > 0 ? (correctCount / typedCount) * 100 : 100;
   const wpm = elapsedMs > 0 ? (correctCount / 5) / (elapsedMs / 60000) : 0;
@@ -80,18 +85,15 @@ function TypingBox({
       })
       .filter((item) => item.word);
 
-    // Calculate average delay across all words to identify slow ones
     const totalAvgDelay = allWordStats.length > 0
       ? allWordStats.reduce((sum, w) => sum + w.avgDelay, 0) / allWordStats.length
       : 0;
 
-    // Only include words the user actually struggled with
     const hardWords = allWordStats
       .filter((item) => item.errors > 0 || item.avgDelay > totalAvgDelay * 1.3)
       .sort((a, b) => b.difficultyScore - a.difficultyScore)
       .slice(0, 8);
 
-    // Deep-clone keyMetrics so navigation doesn't lose data via stale ref
     const clonedKeyMetrics = {};
     for (const [k, v] of Object.entries(keyMetricsRef.current)) {
       clonedKeyMetrics[k] = { ...v };
@@ -249,10 +251,6 @@ function TypingBox({
     onRestart
   ]);
 
-  const elapsedSeconds = useMemo(() => {
-    if (!startTime) return 0;
-    return Math.max(1, Math.round(elapsedMs / 1000));
-  }, [startTime, elapsedMs]);
   const remainingSeconds = Math.max(0, timeLimitSec - Math.floor(elapsedMs / 1000));
 
   const ghostCursorByIndex = useMemo(() => {
@@ -267,29 +265,49 @@ function TypingBox({
     return map;
   }, [ghostCursors, text.length]);
 
+  // Slide lines: keep cursor row at line 2 (0-indexed) of the 4 visible lines
   useEffect(() => {
     if (!textViewportRef.current || currentIndex <= 0) return;
     const viewport = textViewportRef.current;
     const activeChar = viewport.querySelector(`[data-char-index="${Math.max(0, currentIndex - 1)}"]`);
     if (!activeChar) return;
 
-    const viewportStyle = window.getComputedStyle(viewport);
-    const lineHeight = parseFloat(viewportStyle.lineHeight) || 48;
-    const currentLine = Math.floor(activeChar.offsetTop / lineHeight);
-    const nextOffset = currentLine > 3 ? (currentLine - 3) * lineHeight : 0;
+    const currentLine = Math.floor(activeChar.offsetTop / LINE_HEIGHT_PX);
+    // Start scrolling once we're past line 1 so the cursor stays on line 2
+    const nextOffset = currentLine > 1 ? (currentLine - 1) * LINE_HEIGHT_PX : 0;
     if (nextOffset !== lineOffsetPx) setLineOffsetPx(nextOffset);
   }, [currentIndex, lineOffsetPx]);
 
   return (
-    <div className={`typing-box ${enabled ? "" : "typing-box-disabled"}`}>
-      <div className="typing-metrics">
-        <span>WPM: {Math.round(wpm)}</span>
-        <span>Accuracy: {Math.round(accuracy)}%</span>
-      </div>
+    <div className={`typing-box-fullscreen ${enabled ? "" : "typing-box-disabled"}`}>
 
-      <div className="typing-timer-large">{timedMode ? `${remainingSeconds}s` : `${elapsedSeconds}s`}</div>
+      {/* Pre-start prompt */}
+      {!hasStarted && (
+        <div className="typing-prestart">
+          <span className="typing-prestart-hint">Start typing to begin…</span>
+          {difficultyLabel && (
+            <span className="typing-prestart-meta">{difficultyLabel} · {timeLimitSec}s</span>
+          )}
+        </div>
+      )}
 
-      <div ref={textViewportRef} className="typing-text" role="textbox" aria-label="Typing workspace">
+      {/* Live HUD — only shown while typing */}
+      {hasStarted && (
+        <div className="typing-hud">
+          <span className="typing-hud-wpm">{Math.round(wpm)} <small>WPM</small></span>
+          <span className="typing-hud-timer">{timedMode ? `${remainingSeconds}s` : `${Math.max(1, Math.round(elapsedMs / 1000))}s`}</span>
+          <span className="typing-hud-acc">{Math.round(accuracy)}% <small>ACC</small></span>
+        </div>
+      )}
+
+      {/* Text area — always visible */}
+      <div
+        ref={textViewportRef}
+        className={`typing-text-full ${!hasStarted ? "typing-text-idle" : ""}`}
+        role="textbox"
+        aria-label="Typing workspace"
+        style={{ "--line-h": `${LINE_HEIGHT_PX}px`, "--visible-lines": VISIBLE_LINES }}
+      >
         <div className="typing-text-inner" style={{ transform: `translateY(-${lineOffsetPx}px)` }}>
           {text.split("").map((char, index) => (
             <span
@@ -313,16 +331,15 @@ function TypingBox({
         </div>
       </div>
 
-      <div className="typing-subtext">
-        <span>Errors: {errorCount}</span>
-        {disqualifyAfterWrongWords > 0 && <span>Wrong-word streak: {wrongWordStreak}</span>}
-        {onRestart && <span>Shortcut: Esc</span>}
-        {onRestart && (
+      {/* Bottom bar — only shown while typing */}
+      {hasStarted && onRestart && (
+        <div className="typing-bottombar">
+          <span className="typing-errors-count">Errors: {errorCount}</span>
           <button type="button" className="typing-restart-button" onClick={onRestart}>
-            Restart Test
+            Restart  <kbd>Esc</kbd>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
