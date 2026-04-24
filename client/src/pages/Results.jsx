@@ -12,11 +12,17 @@ function Results() {
 
   const mode = state.mode || "solo";
   const results = state.results || [];
-  const currentUser = state.currentUser || "You";
-  const roomCode = state.roomCode || sessionStorage.getItem("flash_room");
+  const currentUser = state.currentUser || sessionStorage.getItem("flash_username") || "You";
+  const roomCode = state.roomCode || sessionStorage.getItem("flash_room") || "";
   const soloTelemetry = state.soloTelemetry || null;
   const speedTimeline = state.speedTimeline || {};
   const isHost = state.isHost || sessionStorage.getItem("flash_host") === "true";
+
+  // Persist to session storage if we have them from state
+  useEffect(() => {
+    if (state.roomCode) sessionStorage.setItem("flash_room", state.roomCode);
+    if (state.isHost !== undefined) sessionStorage.setItem("flash_host", String(state.isHost));
+  }, [state.roomCode, state.isHost]);
 
   // Multiplayer post-race state
   const [readyPlayers, setReadyPlayers] = useState([]);
@@ -52,11 +58,33 @@ function Results() {
       });
     }
 
+    function onRaceStarting(payload) {
+      navigate("/race", {
+        state: {
+          roomCode: payload.roomCode,
+          username: sessionStorage.getItem("flash_username"),
+          text: payload.text,
+          isHost: sessionStorage.getItem("flash_host") === "true",
+          players: (payload.players || allPlayers).map(p => typeof p === 'string' ? { username: p } : p),
+          settings: payload.settings
+        }
+      });
+    }
+
+    function onRoomError(payload) {
+      alert(payload.message || "An error occurred.");
+    }
+
     socket.on("player_list_update", onPlayerList);
     socket.on("return_to_lobby", onReturnToLobby);
+    socket.on("race_starting", onRaceStarting);
+    socket.on("room_error", onRoomError);
+
     return () => {
       socket.off("player_list_update", onPlayerList);
       socket.off("return_to_lobby", onReturnToLobby);
+      socket.off("race_starting", onRaceStarting);
+      socket.off("room_error", onRoomError);
     };
   }, [mode, navigate]);
 

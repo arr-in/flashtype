@@ -14,32 +14,49 @@ function Lobby() {
 
   const [username, setUsername] = useState(sessionStorage.getItem("flash_username") || "");
   const [roomCodeInput, setRoomCodeInput] = useState("");
-  // If returning from results, restore room immediately
-  const [roomCode, setRoomCode] = useState(fromResults ? (returnPayload.roomCode || sessionStorage.getItem("flash_room") || "") : "");
-  const [players, setPlayers] = useState(fromResults ? (returnPayload.players || []) : []);
-  const [isHost, setIsHost] = useState(
-    fromResults
-      ? (sessionStorage.getItem("flash_username") || "") === (returnPayload.host || "")
-      : false
-  );
-  const [host, setHost] = useState(fromResults ? (returnPayload.host || "") : "");
+  
+  // Persistent state recovery: state > sessionStorage > empty
+  const [roomCode, setRoomCode] = useState(() => {
+    return location.state?.roomCode || sessionStorage.getItem("flash_room") || "";
+  });
+  const [players, setPlayers] = useState(() => {
+    return location.state?.players || [];
+  });
+  const [host, setHost] = useState(() => {
+    return location.state?.host || "";
+  });
+  const [isHost, setIsHost] = useState(() => {
+    const savedHost = sessionStorage.getItem("flash_host") === "true";
+    const currentUsername = sessionStorage.getItem("flash_username") || "";
+    const activeHost = location.state?.host || "";
+    if (activeHost) return currentUsername === activeHost;
+    return savedHost;
+  });
   const [error, setError] = useState("");
   const [joinMode, setJoinMode] = useState(false);
   const [roomStatus, setRoomStatus] = useState("waiting");
   const [readyPlayers, setReadyPlayers] = useState([]);
   const [copied, setCopied] = useState(false);
-  const [raceSettings, setRaceSettings] = useState(
-    fromResults && returnPayload.settings
-      ? returnPayload.settings
-      : {
-          difficulty: "hard",
-          timeLimit: 60,
-          includeNumbers: true,
-          includeSymbols: true,
-          allowCaps: true,
-          wordLength: "medium"
-        }
-  );
+  const [raceSettings, setRaceSettings] = useState(() => {
+    return location.state?.settings || {
+      difficulty: "hard",
+      timeLimit: 60,
+      includeNumbers: true,
+      includeSymbols: true,
+      allowCaps: true,
+      wordLength: "medium"
+    };
+  });
+
+  // Re-sync with server on mount if we have a room code but no player data
+  useEffect(() => {
+    if (roomCode && players.length === 0) {
+      socket.emit("reset_room_after_results", { 
+        roomCode, 
+        username: sessionStorage.getItem("flash_username") 
+      });
+    }
+  }, [roomCode, players.length]);
 
   useEffect(() => {
     function onRoomJoined(payload) {
