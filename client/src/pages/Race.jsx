@@ -29,7 +29,8 @@ function Race() {
   const [showCountdown, setShowCountdown] = useState(true);
   const [typingEnabled, setTypingEnabled] = useState(false);
   const [players, setPlayers] = useState(state.players || []);
-  const raceStartRef = useRef(null);
+  // Initialize at mount so all position_updates use a consistent start time
+  const raceStartRef = useRef(Date.now());
   const timelineRef = useRef({});
   const isHost = sessionStorage.getItem("flash_host") === "true";
 
@@ -42,7 +43,7 @@ function Race() {
     // GO! hides after 0.8s. Total elapsed before typing enabled: ~3.8s.
     // Server fires race timeout at 4s — aligned.
     const sequence = ["3", "2", "1", "GO!"];
-    setCountdownValue("3"); // show immediately
+    setCountdownValue("3");
     let index = 1;
     const timer = setInterval(() => {
       setCountdownValue(sequence[index]);
@@ -52,7 +53,7 @@ function Race() {
         setTimeout(() => {
           setShowCountdown(false);
           setTypingEnabled(true);
-          raceStartRef.current = Date.now();
+          // raceStartRef already set at mount — no reassignment needed
         }, 800);
       }
     }, 1000);
@@ -63,21 +64,22 @@ function Race() {
     function onPositionUpdate(payload) {
       const nextPlayers = payload.players || [];
       setPlayers(nextPlayers);
+      const now = Date.now();
+      const raceStart = raceStartRef.current; // always set at mount
+      const elapsed = now - raceStart;
+      // Only record after countdown ends (>3.5s) to skip zero-wpm noise
+      if (elapsed < 3500) return;
       const prev = timelineRef.current || {};
-      {
-        const now = Date.now();
-        const raceStart = raceStartRef.current || now;
-        const next = { ...prev };
-        nextPlayers.forEach((player) => {
-          const existing = next[player.username] ? [...next[player.username]] : [];
-          existing.push({
-            t: now - raceStart,
-            wpm: Math.round(player.wpm || 0)
-          });
-          next[player.username] = existing.slice(-240);
+      const next = { ...prev };
+      nextPlayers.forEach((player) => {
+        const existing = next[player.username] ? [...next[player.username]] : [];
+        existing.push({
+          t: elapsed,
+          wpm: Math.round(player.wpm || 0)
         });
-        timelineRef.current = next;
-      }
+        next[player.username] = existing.slice(-240);
+      });
+      timelineRef.current = next;
     }
 
     function onRaceOver(payload) {

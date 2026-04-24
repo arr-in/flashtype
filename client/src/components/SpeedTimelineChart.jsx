@@ -27,16 +27,19 @@ function SpeedTimelineChart({ timelineMap = {} }) {
   const [hoveredUser, setHoveredUser] = useState("");
   const players = Object.keys(timelineMap);
 
-  const { maxT, maxWpm } = useMemo(() => {
+  const { minT, maxT, maxWpm } = useMemo(() => {
+    let minT = Infinity;
     let t = 1;
     let w = 1;
     players.forEach((player) => {
       (timelineMap[player] || []).forEach((point) => {
+        if (point.t < minT) minT = point.t;
         if (point.t > t) t = point.t;
         if (point.wpm > w) w = point.wpm;
       });
     });
-    return { maxT: t, maxWpm: niceMax(w) };
+    if (minT === Infinity) minT = 0;
+    return { minT, maxT: Math.max(t - minT, 1), maxWpm: niceMax(w) };
   }, [players, timelineMap]);
 
   if (!players.length) return null;
@@ -54,7 +57,7 @@ function SpeedTimelineChart({ timelineMap = {} }) {
   );
 
   function toX(t) {
-    return MARGIN_L + (t / maxT) * CHART_W;
+    return MARGIN_L + ((t - minT) / maxT) * CHART_W;
   }
   function toY(wpm) {
     return MARGIN_T + CHART_H - (wpm / maxWpm) * CHART_H;
