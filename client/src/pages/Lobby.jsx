@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 
 const DIFFICULTIES = ["beginner", "easy", "medium", "hard", "expert"];
@@ -8,25 +8,38 @@ const WORD_LENGTHS = ["short", "medium", "long"];
 
 function Lobby() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const location = useLocation();
+  const fromResults = location.state?.fromResults;
+  const returnPayload = location.state || {};
+
+  const [username, setUsername] = useState(sessionStorage.getItem("flash_username") || "");
   const [roomCodeInput, setRoomCodeInput] = useState("");
-  const [roomCode, setRoomCode] = useState("");
-  const [players, setPlayers] = useState([]);
-  const [isHost, setIsHost] = useState(false);
-  const [host, setHost] = useState("");
+  // If returning from results, restore room immediately
+  const [roomCode, setRoomCode] = useState(fromResults ? (returnPayload.roomCode || sessionStorage.getItem("flash_room") || "") : "");
+  const [players, setPlayers] = useState(fromResults ? (returnPayload.players || []) : []);
+  const [isHost, setIsHost] = useState(
+    fromResults
+      ? (sessionStorage.getItem("flash_username") || "") === (returnPayload.host || "")
+      : false
+  );
+  const [host, setHost] = useState(fromResults ? (returnPayload.host || "") : "");
   const [error, setError] = useState("");
   const [joinMode, setJoinMode] = useState(false);
   const [roomStatus, setRoomStatus] = useState("waiting");
   const [readyPlayers, setReadyPlayers] = useState([]);
   const [copied, setCopied] = useState(false);
-  const [raceSettings, setRaceSettings] = useState({
-    difficulty: "hard",
-    timeLimit: 60,
-    includeNumbers: true,
-    includeSymbols: true,
-    allowCaps: true,
-    wordLength: "medium"
-  });
+  const [raceSettings, setRaceSettings] = useState(
+    fromResults && returnPayload.settings
+      ? returnPayload.settings
+      : {
+          difficulty: "hard",
+          timeLimit: 60,
+          includeNumbers: true,
+          includeSymbols: true,
+          allowCaps: true,
+          wordLength: "medium"
+        }
+  );
 
   useEffect(() => {
     function onRoomJoined(payload) {

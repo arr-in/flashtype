@@ -88,7 +88,15 @@ function Results() {
       roomCode,
       username: sessionStorage.getItem("flash_username")
     });
-    // Host navigates too (will also receive the return_to_lobby event)
+  }
+
+  function startRaceNow() {
+    // Host starts race directly from results when all are ready
+    socket.emit("start_race", {
+      roomCode,
+      username: sessionStorage.getItem("flash_username"),
+      settings: {} // server uses stored settings
+    });
   }
 
   const allReady = allPlayers.length > 0 && allPlayers.every((p) => readyPlayers.includes(p));
@@ -190,19 +198,26 @@ function Results() {
             Retry
           </button>
         )}
+        {/* Play Again — only show if not yet clicked */}
         {mode === "multiplayer" && !hasClickedPlayAgain && (
           <button type="button" className="flash-start-button" onClick={playAgain}>
             ✓ Play Again
           </button>
         )}
-        {mode === "multiplayer" && hasClickedPlayAgain && (
-          <button type="button" disabled style={{ opacity: 0.5 }}>
-            Waiting for others…
+        {/* Host: Start Race when all ready; otherwise show waiting or Go to Settings */}
+        {mode === "multiplayer" && isHost && allReady && (
+          <button type="button" className="flash-start-button" onClick={startRaceNow}>
+            ⚡ Start Race!
           </button>
         )}
-        {mode === "multiplayer" && isHost && (
+        {mode === "multiplayer" && isHost && !allReady && (
           <button type="button" className="lobby-secondary-btn" onClick={goToSettings}>
             ⚙ Go to Settings
+          </button>
+        )}
+        {mode === "multiplayer" && !isHost && hasClickedPlayAgain && (
+          <button type="button" disabled style={{ opacity: 0.5 }}>
+            Waiting for others…
           </button>
         )}
         <button type="button" onClick={backHome}>

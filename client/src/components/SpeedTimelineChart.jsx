@@ -9,12 +9,21 @@ const MARGIN_R = 16;   // right
 const SVG_W = MARGIN_L + CHART_W + MARGIN_R;
 const SVG_H = MARGIN_T + CHART_H + MARGIN_B;
 
-function getColor(username) {
-  let hash = 0;
-  for (let i = 0; i < username.length; i += 1) {
-    hash = (hash * 31 + username.charCodeAt(i)) % 360;
-  }
-  return `hsl(${hash}, 70%, 65%)`;
+// Distinct palette — each player gets a clearly different color
+const COLOR_PALETTE = [
+  "#e2b714", // gold (primary accent)
+  "#63a7ff", // blue
+  "#f28482", // red/salmon
+  "#7fd9a8", // green
+  "#e0a5ff", // purple
+  "#ffd166", // yellow
+  "#8ecae6", // light blue
+  "#ff9f43", // orange
+];
+
+function getColor(username, allPlayers) {
+  const idx = allPlayers.indexOf(username);
+  return COLOR_PALETTE[(idx >= 0 ? idx : 0) % COLOR_PALETTE.length];
 }
 
 function niceMax(val) {
@@ -72,9 +81,9 @@ function SpeedTimelineChart({ timelineMap = {} }) {
             className="speed-legend-item"
             onMouseEnter={() => setHoveredUser(player)}
             onMouseLeave={() => setHoveredUser("")}
-            style={{ color: getColor(player) }}
+            style={{ color: getColor(player, players) }}
           >
-            <span className="speed-legend-dot" style={{ background: getColor(player) }} />
+            <span className="speed-legend-dot" style={{ background: getColor(player, players) }} />
             {player}
           </span>
         ))}
@@ -178,7 +187,7 @@ function SpeedTimelineChart({ timelineMap = {} }) {
               key={player}
               d={path}
               fill="none"
-              stroke={getColor(player)}
+              stroke={getColor(player, players)}
               strokeWidth={active ? 2.5 : 1}
               opacity={active ? 1 : 0.2}
               strokeLinejoin="round"
@@ -195,7 +204,7 @@ function SpeedTimelineChart({ timelineMap = {} }) {
           return (
             <circle
               cx={toX(last.t)} cy={toY(last.wpm)}
-              r={4} fill={getColor(hoveredUser)} stroke="#0d0d0d" strokeWidth={1.5}
+              r={4} fill={getColor(hoveredUser, players)} stroke="#0d0d0d" strokeWidth={1.5}
             />
           );
         })()}
