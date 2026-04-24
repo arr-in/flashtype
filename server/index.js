@@ -302,6 +302,16 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("leave_room", () => {
+    const removedInfo = removePlayerBySocket(socket.id);
+    if (!removedInfo) return;
+    socket.leave(removedInfo.roomCode);
+    const room = getRoom(removedInfo.roomCode);
+    if (!room) return;
+    broadcastPlayerList(removedInfo.roomCode);
+    if (room.players.length < 2 && room.status === "racing") emitRaceOver(removedInfo.roomCode);
+  });
+
   socket.on("disconnect", () => {
     const removedInfo = removePlayerBySocket(socket.id);
     if (!removedInfo) return;

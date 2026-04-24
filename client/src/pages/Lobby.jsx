@@ -179,6 +179,17 @@ function Lobby() {
     }
   }
 
+  function leaveRoom() {
+    socket.emit("leave_room");
+    sessionStorage.removeItem("flash_room");
+    sessionStorage.removeItem("flash_host");
+    setRoomCode("");
+    setPlayers([]);
+    setHost("");
+    setIsHost(false);
+    navigate("/");
+  }
+
   const inWaitingRoom = Boolean(roomCode);
   const readyCount = readyPlayers.length;
   const canStartRace =
@@ -275,9 +286,9 @@ function Lobby() {
       <button
         type="button"
         className="solo-back-btn"
-        onClick={() => navigate("/")}
+        onClick={leaveRoom}
       >
-        ← Back
+        ← Leave Room
       </button>
 
       <div className="lobby-room-center">
