@@ -18,7 +18,8 @@ const {
   setRoomTimeout,
   resetRoomForReplay,
   setPlayerReadyForReplay,
-  updateRoomSettings
+  updateRoomSettings,
+  shouldRaceEnd
 } = require("./roomManager");
 
 const PORT = process.env.PORT || 3001;
@@ -215,7 +216,7 @@ io.on("connection", (socket) => {
       }))
     });
 
-    if (allPlayersFinished(roomCode)) emitRaceOver(roomCode);
+    if (shouldRaceEnd(roomCode)) emitRaceOver(roomCode);
   });
 
   socket.on("player_disqualified", ({ roomCode, username, wpm, accuracy, timeMs }) => {
@@ -233,7 +234,7 @@ io.on("connection", (socket) => {
       }))
     });
 
-    if (allPlayersFinished(roomCode)) emitRaceOver(roomCode);
+    if (shouldRaceEnd(roomCode)) emitRaceOver(roomCode);
   });
 
   socket.on("play_again", ({ roomCode, username }) => {

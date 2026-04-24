@@ -123,10 +123,38 @@ function markPlayerDisqualified(roomCode, username, stats = {}) {
 
   player.disqualified = true;
   player.finished = true;
-  player.finishTime = stats.timeMs || null;
+  player.finishTime = stats.timeMs || (Date.now() - (room.startTime || Date.now()));
   player.wpm = stats.wpm || player.wpm || 0;
   player.accuracy = stats.accuracy || player.accuracy || 0;
   return room;
+}
+
+function shouldRaceEnd(roomCode) {
+  const room = rooms[roomCode];
+  if (!room || room.status !== "racing") return false;
+
+  const total = room.players.length;
+  const active = room.players.filter(p => !p.finished).length;
+  const disqualified = room.players.filter(p => p.disqualified).length;
+  const finishedCorrectly = room.players.filter(p => p.finished && !p.disqualified).length;
+
+  // Everyone is done
+  if (active === 0) return true;
+
+  // If only 1 player is left typing...
+  if (active === 1 && total >= 2) {
+    // Check if everyone else has been disqualified
+    // "when multiple players are threre and all disqualified and only one is left it should stop"
+    const others = room.players.filter(p => p.finished);
+    const allOthersDisqualified = others.every(p => p.disqualified);
+    if (allOthersDisqualified) return true;
+
+    // Optional: If one player already finished correctly and others are DQ'd,
+    // the race is effectively over for positions. 
+    // But the user only specified "all disqualified".
+  }
+
+  return false;
 }
 
 function buildResults(roomCode) {
@@ -139,7 +167,8 @@ function buildResults(roomCode) {
     const progressScore = (player.progress || 0) * 12;
     const speedScore = (player.wpm || 0) * 10;
     const accuracyScore = (player.accuracy || 0) * 8;
-    const completionBonus = player.finished ? 2000 : 0;
+    // DQ players should NOT get completion bonus
+    const completionBonus = (player.finished && !player.disqualified) ? 2000 : 0;
     const timeValue = player.finished ? player.finishTime || roomDurationMs : roomDurationMs;
     const timePenalty = timeValue / 120;
     return Math.max(0, Math.round(progressScore + speedScore + accuracyScore + completionBonus - timePenalty));
@@ -148,10 +177,21 @@ function buildResults(roomCode) {
   return [...room.players]
     .map((player) => ({ ...player, score: calculateScore(player) }))
     .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
+      // 1. Finished (non-DQ) always beats DQ
       if (a.disqualified !== b.disqualified) return a.disqualified ? 1 : -1;
-      if (a.finished && b.finished) return (a.finishTime || roomDurationMs) - (b.finishTime || roomDurationMs);
-      if (a.finished !== b.finished) return a.finished ? -1 : 1;
+      
+      // 2. If both finished correctly, faster time wins
+      if (!a.disqualified && a.finished && b.finished) {
+        return (a.finishTime || roomDurationMs) - (b.finishTime || roomDurationMs);
+      }
+      
+      // 3. If both disqualified, later DQ (survived longer) or higher score/progress
+      if (a.disqualified && b.disqualified) {
+        if (a.finishTime !== b.finishTime) return (b.finishTime || 0) - (a.finishTime || 0);
+        return b.score - a.score;
+      }
+
+      if (b.score !== a.score) return b.score - a.score;
       return b.progress - a.progress;
     })
     .map((p, idx) => ({
@@ -304,5 +344,6 @@ module.exports = {
   resetRoomForReplay,
   setPlayerReadyForReplay,
   areAllPlayersReady,
-  updateRoomSettings
+  updateRoomSettings,
+  shouldRaceEnd
 };
