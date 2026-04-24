@@ -17,7 +17,8 @@ const {
   setRaceFinished,
   setRoomTimeout,
   resetRoomForReplay,
-  setPlayerReadyForReplay
+  setPlayerReadyForReplay,
+  updateRoomSettings
 } = require("./roomManager");
 
 const PORT = process.env.PORT || 3001;
@@ -249,6 +250,31 @@ io.on("connection", (socket) => {
       settings: updatedRoom.settings,
       status: updatedRoom.status,
       readyPlayers: updatedRoom.readyPlayers || []
+    });
+  });
+
+  // Host updates a setting live — broadcast to all players
+  socket.on("update_settings", ({ roomCode, username, settings }) => {
+    const room = getRoom(roomCode);
+    if (!room) return;
+    if (room.host !== username) return;
+    updateRoomSettings(roomCode, settings);
+    broadcastPlayerList(roomCode);
+  });
+
+  // Host sends all players back to the lobby waiting room
+  socket.on("return_to_lobby", ({ roomCode, username }) => {
+    const room = getRoom(roomCode);
+    if (!room) return;
+    if (room.host !== username) return;
+    const resetRoom = resetRoomForReplay(roomCode);
+    io.to(roomCode).emit("return_to_lobby", {
+      roomCode,
+      host: resetRoom.host,
+      players: resetRoom.players.map((p) => ({ username: p.username })),
+      settings: resetRoom.settings,
+      status: resetRoom.status,
+      readyPlayers: []
     });
   });
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 
 const DIFFICULTIES = ["beginner", "easy", "medium", "hard", "expert"];
-const DURATIONS = [30, 60, 90];
+const DURATIONS = [15, 30, 60, 90];
 const WORD_LENGTHS = ["short", "medium", "long"];
 
 function Lobby() {
@@ -70,9 +70,22 @@ function Lobby() {
           username: sessionStorage.getItem("flash_username"),
           text: payload.text,
           isHost: sessionStorage.getItem("flash_host") === "true",
-          players
+          players,
+          settings: payload.settings
         }
       });
+    }
+
+    function onReturnToLobby(payload) {
+      // All players get sent back into the waiting room
+      setRoomCode(payload.roomCode);
+      setPlayers(payload.players || []);
+      setHost(payload.host || "");
+      if (payload.settings) setRaceSettings(payload.settings);
+      setRoomStatus(payload.status || "waiting");
+      setReadyPlayers([]);
+      const currentUsername = sessionStorage.getItem("flash_username") || username;
+      setIsHost(currentUsername === (payload.host || ""));
     }
 
     socket.on("room_joined", onRoomJoined);
@@ -80,12 +93,14 @@ function Lobby() {
     socket.on("room_error", onError);
     socket.on("connect_error", onConnectError);
     socket.on("race_starting", onRaceStarting);
+    socket.on("return_to_lobby", onReturnToLobby);
     return () => {
       socket.off("room_joined", onRoomJoined);
       socket.off("player_list_update", onPlayerList);
       socket.off("room_error", onError);
       socket.off("connect_error", onConnectError);
       socket.off("race_starting", onRaceStarting);
+      socket.off("return_to_lobby", onReturnToLobby);
     };
   }, [navigate, username, players]);
 
@@ -122,7 +137,16 @@ function Lobby() {
   }
 
   function setSetting(key, value) {
-    setRaceSettings((prev) => ({ ...prev, [key]: value }));
+    const updated = { [key]: value };
+    setRaceSettings((prev) => ({ ...prev, ...updated }));
+    // Broadcast setting change to all players immediately
+    if (roomCode) {
+      socket.emit("update_settings", {
+        roomCode,
+        username: sessionStorage.getItem("flash_username") || username,
+        settings: updated
+      });
+    }
   }
 
   const inWaitingRoom = Boolean(roomCode);

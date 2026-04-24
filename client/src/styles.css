@@ -1193,3 +1193,106 @@ select {
     min-width: 100%;
   }
 }
+
+/* ── Speed Timeline Chart ── */
+.speed-chart-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.speed-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  overflow: visible;
+}
+
+.speed-chart-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+}
+
+.speed-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: default;
+  user-select: none;
+}
+
+.speed-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Results: Play Again ready panel ── */
+.results-replay-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.results-replay-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #555;
+  margin: 0;
+}
+
+.results-replay-players {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.results-replay-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid;
+}
+
+.results-replay-ready {
+  background: #0a1f0a;
+  border-color: #1a4a1a;
+  color: #4caf50;
+}
+
+.results-replay-waiting {
+  background: #141414;
+  border-color: #2a2a2a;
+  color: #555;
+}
+
+.results-replay-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.results-replay-status {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+.results-replay-all-ready {
+  color: #e2b714;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+

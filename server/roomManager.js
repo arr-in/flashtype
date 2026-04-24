@@ -279,6 +279,13 @@ function areAllPlayersReady(roomCode) {
   return room.players.every((p) => room.readyPlayers.includes(p.username));
 }
 
+function updateRoomSettings(roomCode, settings) {
+  const room = rooms[roomCode];
+  if (!room) return null;
+  room.settings = { ...room.settings, ...settings };
+  return room;
+}
+
 module.exports = {
   rooms,
   createRoom,
@@ -296,5 +303,6 @@ module.exports = {
   setRoomTimeout,
   resetRoomForReplay,
   setPlayerReadyForReplay,
-  areAllPlayersReady
+  areAllPlayersReady,
+  updateRoomSettings
 };

@@ -23,6 +23,7 @@ function Race() {
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room") || "";
   const username = state.username || sessionStorage.getItem("flash_username") || "";
   const raceText = state.text || "";
+  const timeLimitSec = state.settings?.timeLimit || 60;
 
   const [countdownValue, setCountdownValue] = useState("3");
   const [showCountdown, setShowCountdown] = useState(true);
@@ -37,8 +38,12 @@ function Race() {
       navigate("/lobby");
       return;
     }
+    // Show "3" immediately, then tick every 1s to 2 → 1 → GO!
+    // GO! hides after 0.8s. Total elapsed before typing enabled: ~3.8s.
+    // Server fires race timeout at 4s — aligned.
     const sequence = ["3", "2", "1", "GO!"];
-    let index = 0;
+    setCountdownValue("3"); // show immediately
+    let index = 1;
     const timer = setInterval(() => {
       setCountdownValue(sequence[index]);
       index += 1;
@@ -48,7 +53,7 @@ function Race() {
           setShowCountdown(false);
           setTypingEnabled(true);
           raceStartRef.current = Date.now();
-        }, 400);
+        }, 800);
       }
     }, 1000);
     return () => clearInterval(timer);
@@ -163,6 +168,8 @@ function Race() {
         enabled={typingEnabled && !isDisqualified}
         ghostCursors={ghostCursors}
         disqualifyAfterWrongWords={5}
+        timedMode
+        timeLimitSec={timeLimitSec}
       />
       <Countdown value={countdownValue} visible={showCountdown} />
     </main>

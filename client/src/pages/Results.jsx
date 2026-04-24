@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlayerCard from "../components/PlayerCard";
 import KeyboardHeatmap from "../components/KeyboardHeatmap";
@@ -16,6 +16,12 @@ function Results() {
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room");
   const soloTelemetry = state.soloTelemetry || null;
   const speedTimeline = state.speedTimeline || {};
+  const isHost = state.isHost || sessionStorage.getItem("flash_host") === "true";
+
+  // Multiplayer post-race state
+  const [readyPlayers, setReadyPlayers] = useState([]);
+  const [allPlayers, setAllPlayers] = useState(results.map((r) => r.username));
+  const [hasClickedPlayAgain, setHasClickedPlayAgain] = useState(false);
 
   const soloMeta = useMemo(() => {
     if (mode !== "solo" || !state.difficulty) return null;
@@ -23,6 +29,36 @@ function Results() {
     const key = `flashType_best_${state.difficulty}_${timer}s`;
     return { difficulty: state.difficulty, timeLimit: timer, personalBest: Number(localStorage.getItem(key) || 0) };
   }, [mode, state.difficulty, state.timeLimit]);
+
+  // Multiplayer: listen for ready-status updates and return_to_lobby
+  useEffect(() => {
+    if (mode !== "multiplayer") return undefined;
+
+    function onPlayerList(payload) {
+      setReadyPlayers(payload.readyPlayers || []);
+      setAllPlayers((payload.players || []).map((p) => p.username));
+    }
+
+    function onReturnToLobby(payload) {
+      // Host sent everyone back — navigate to lobby (waiting room)
+      navigate("/lobby", {
+        state: {
+          fromResults: true,
+          roomCode: payload.roomCode,
+          host: payload.host,
+          players: payload.players,
+          settings: payload.settings
+        }
+      });
+    }
+
+    socket.on("player_list_update", onPlayerList);
+    socket.on("return_to_lobby", onReturnToLobby);
+    return () => {
+      socket.off("player_list_update", onPlayerList);
+      socket.off("return_to_lobby", onReturnToLobby);
+    };
+  }, [mode, navigate]);
 
   function backHome() {
     navigate("/");
@@ -39,9 +75,23 @@ function Results() {
         }
       });
     }
-    socket.emit("play_again", { roomCode, username: sessionStorage.getItem("flash_username") });
-    navigate("/lobby");
+    // Multiplayer: signal ready, stay on page
+    if (!hasClickedPlayAgain) {
+      socket.emit("play_again", { roomCode, username: sessionStorage.getItem("flash_username") });
+      setHasClickedPlayAgain(true);
+    }
   }
+
+  function goToSettings() {
+    // Host only: send all players back to the lobby waiting room
+    socket.emit("return_to_lobby", {
+      roomCode,
+      username: sessionStorage.getItem("flash_username")
+    });
+    // Host navigates too (will also receive the return_to_lobby event)
+  }
+
+  const allReady = allPlayers.length > 0 && allPlayers.every((p) => readyPlayers.includes(p));
 
   return (
     <main className="page">
@@ -80,7 +130,7 @@ function Results() {
           {soloTelemetry.keyMetrics && Object.keys(soloTelemetry.keyMetrics).length > 0 ? (
             <KeyboardHeatmap keyMetrics={soloTelemetry.keyMetrics} />
           ) : (
-            <p style={{ color: '#888', fontStyle: 'italic' }}>No key data recorded for this run.</p>
+            <p style={{ color: "#888", fontStyle: "italic" }}>No key data recorded for this run.</p>
           )}
           <h4>Hard Word List</h4>
           {(soloTelemetry.hardWords || []).length > 0 ? (
@@ -88,13 +138,13 @@ function Results() {
               {soloTelemetry.hardWords.map((item) => (
                 <div key={`${item.word}-${item.errors}-${item.avgDelay}`} className="hard-word-item">
                   <span className="hard-word-name">{item.word}</span>
-                  <span className="hard-word-errors">{item.errors} error{item.errors !== 1 ? 's' : ''}</span>
+                  <span className="hard-word-errors">{item.errors} error{item.errors !== 1 ? "s" : ""}</span>
                   <span className="hard-word-delay">{item.avgDelay} ms avg</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ color: '#888', fontStyle: 'italic' }}>No hard words — great job!</p>
+            <p style={{ color: "#888", fontStyle: "italic" }}>No hard words — great job!</p>
           )}
         </section>
       )}
@@ -114,18 +164,47 @@ function Results() {
         </section>
       )}
 
+      {/* Multiplayer play-again ready panel */}
+      {mode === "multiplayer" && (
+        <section className="panel results-replay-panel">
+          <p className="results-replay-title">Play Again?</p>
+          <div className="results-replay-players">
+            {allPlayers.map((player) => {
+              const ready = readyPlayers.includes(player);
+              return (
+                <div key={player} className={`results-replay-chip ${ready ? "results-replay-ready" : "results-replay-waiting"}`}>
+                  <span className="results-replay-dot" />
+                  {player}
+                  <span className="results-replay-status">{ready ? "Ready ✓" : "Waiting…"}</span>
+                </div>
+              );
+            })}
+          </div>
+          {allReady && <p className="results-replay-all-ready">All players ready — host can start!</p>}
+        </section>
+      )}
+
       <div className="button-wrap">
         {mode === "solo" && (
           <button type="button" onClick={playAgain}>
             Retry
           </button>
         )}
-        {mode === "multiplayer" && (
-          <button type="button" onClick={playAgain}>
-            Play Again
+        {mode === "multiplayer" && !hasClickedPlayAgain && (
+          <button type="button" className="flash-start-button" onClick={playAgain}>
+            ✓ Play Again
           </button>
         )}
-        {mode === "multiplayer" && <p>Host can start when at least 2 players are ready.</p>}
+        {mode === "multiplayer" && hasClickedPlayAgain && (
+          <button type="button" disabled style={{ opacity: 0.5 }}>
+            Waiting for others…
+          </button>
+        )}
+        {mode === "multiplayer" && isHost && (
+          <button type="button" className="lobby-secondary-btn" onClick={goToSettings}>
+            ⚙ Go to Settings
+          </button>
+        )}
         <button type="button" onClick={backHome}>
           Back to Home
         </button>
