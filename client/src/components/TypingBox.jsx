@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const SIZE_CONFIG = {
   small:  { cls: "typing-size-small",  lineH: 38 },
@@ -35,8 +35,15 @@ function TypingBox({
   const [startTime, setStartTime] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [lineOffsetPx, setLineOffsetPx] = useState(0);
+  // Smooth sliding cursor state
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [blurAmount, setBlurAmount] = useState(0);
   const completeRef = useRef(false);
   const textViewportRef = useRef(null);
+  const textInnerRef = useRef(null);
+  const cursorBeamRef = useRef(null);
+  const lastKeyTimeRef = useRef(null);
+  const blurFadeTimerRef = useRef(null);
   const backspaceCountRef = useRef(0);
   const keyMetricsRef = useRef({});
   const keyEventsRef = useRef([]);
@@ -57,10 +64,13 @@ function TypingBox({
     setStartTime(null);
     setElapsedMs(0);
     setLineOffsetPx(0);
+    setCursorPos({ x: 0, y: 0 });
+    setBlurAmount(0);
     backspaceCountRef.current = 0;
     keyMetricsRef.current = {};
     keyEventsRef.current = [];
     lastInputTsRef.current = null;
+    lastKeyTimeRef.current = null;
     completeRef.current = false;
   }, [text]);
 
@@ -286,6 +296,32 @@ function TypingBox({
     setLineOffsetPx(nextOffset);
   }, [currentIndex, lineHeightPx]);
 
+  // ── Sliding cursor position tracker ──────────────────────────
+  useLayoutEffect(() => {
+    if (!textInnerRef.current || !enabled) return;
+    const inner = textInnerRef.current;
+    const activeChar = inner.querySelector(`[data-char-index="${currentIndex}"]`);
+    if (!activeChar) return;
+    const innerRect = inner.getBoundingClientRect();
+    const charRect = activeChar.getBoundingClientRect();
+    const x = charRect.left - innerRect.left;
+    const y = charRect.top - innerRect.top;
+    setCursorPos({ x, y });
+
+    // Compute typing velocity → motion blur
+    const now = performance.now();
+    if (lastKeyTimeRef.current !== null) {
+      const delta = now - lastKeyTimeRef.current;
+      // faster keystrokes → more blur (cap at 8px)
+      const rawBlur = Math.min(8, Math.max(0, 120 / delta - 0.5));
+      setBlurAmount(rawBlur);
+      // Fade blur out after 220ms
+      clearTimeout(blurFadeTimerRef.current);
+      blurFadeTimerRef.current = setTimeout(() => setBlurAmount(0), 220);
+    }
+    lastKeyTimeRef.current = now;
+  }, [currentIndex, enabled]);
+
   function handleEndEarly() {
     if (completeRef.current || !hasStarted) return;
     completeRef.current = true;
@@ -334,7 +370,22 @@ function TypingBox({
         aria-label="Typing workspace"
         style={{ height: `${lineHeightPx * VISIBLE_LINES}px` }}
       >
-        <div className="typing-text-inner" style={{ transform: `translateY(-${lineOffsetPx}px)` }}>
+        <div
+          ref={textInnerRef}
+          className="typing-text-inner"
+          style={{ transform: `translateY(-${lineOffsetPx}px)` }}
+        >
+          {/* Single smooth sliding cursor beam */}
+          {enabled && (
+            <div
+              ref={cursorBeamRef}
+              className="typing-cursor-beam"
+              style={{
+                transform: `translate(${cursorPos.x}px, ${cursorPos.y}px)`,
+                "--blur": `${blurAmount}px`,
+              }}
+            />
+          )}
           {text.split("").map((char, index) => (
             <span
               key={`${char}-${index}`}
@@ -350,7 +401,6 @@ function TypingBox({
                     title={cursor.username}
                   />
                 ))}
-              {index === currentIndex && enabled && <span className="typing-cursor" />}
               {char}
             </span>
           ))}
