@@ -214,6 +214,40 @@ function registerSocketEvents(io) {
         status: updatedRoom.status,
         readyPlayers: updatedRoom.readyPlayers || []
       });
+
+      // Auto-start for matchmaking
+      if (updatedRoom.isMatchmaking && updatedRoom.players.length >= 2 && updatedRoom.readyPlayers.length === updatedRoom.players.length) {
+        const startResult = startRace(roomCode, updatedRoom.settings || {});
+        if (startResult.error) return socket.emit("room_error", { message: startResult.error });
+
+        io.to(roomCode).emit("race_starting", {
+          roomCode,
+          text: startResult.room.text,
+          countdown: [3, 2, 1, "GO!"],
+          settings: startResult.room.settings
+        });
+
+        setTimeout(() => {
+          const currentRoom = getRoom(roomCode);
+          if (!currentRoom) return;
+          setRaceStarted(roomCode);
+          io.to(roomCode).emit("position_update", {
+            players: currentRoom.players.map((p) => ({
+              username: p.username,
+              progress: p.progress,
+              charsTyped: p.charsTyped,
+              wpm: p.wpm,
+              finished: p.finished,
+              disqualified: Boolean(p.disqualified)
+            }))
+          });
+          const timeout = setTimeout(
+            () => emitRaceOver(roomCode),
+            Number(startResult.room.settings?.timeLimit || 60) * 1000
+          );
+          setRoomTimeout(roomCode, timeout);
+        }, 4000);
+      }
     });
 
     socket.on("update_settings", ({ roomCode, username, settings }) => {

@@ -66,6 +66,7 @@ function Results() {
           username: localStorage.getItem("username"),
           text: payload.text,
           isHost: sessionStorage.getItem("flash_host") === "true",
+          isMatchmaking,
           players: (payload.players || allPlayers).map(p => typeof p === 'string' ? { username: p } : p),
           settings: payload.settings
         }
@@ -202,7 +203,7 @@ function Results() {
       )}
 
       {/* Multiplayer play-again ready panel */}
-      {mode === "multiplayer" && !isMatchmaking && (
+      {mode === "multiplayer" && (
         <section className="panel results-replay-panel">
           <p className="results-replay-title">Play Again?</p>
           <div className="results-replay-players">
@@ -228,13 +229,13 @@ function Results() {
           </button>
         )}
         {/* Play Again — only show if not yet clicked */}
-        {mode === "multiplayer" && !isMatchmaking && !hasClickedPlayAgain && (
+        {mode === "multiplayer" && !hasClickedPlayAgain && (
           <button type="button" className="flash-start-button" onClick={playAgain}>
-            ✓ Play Again
+            ✓ {isMatchmaking ? "Ready for Rematch" : "Play Again"}
           </button>
         )}
         {mode === "multiplayer" && isMatchmaking && (
-          <button type="button" className="flash-start-button" onClick={() => navigate("/online")}>
+          <button type="button" className="lobby-secondary-btn" onClick={() => navigate("/online")}>
             🔍 Find New Match
           </button>
         )}
@@ -249,7 +250,7 @@ function Results() {
             ⚙ Go to Settings
           </button>
         )}
-        {mode === "multiplayer" && !isMatchmaking && !isHost && hasClickedPlayAgain && (
+        {mode === "multiplayer" && hasClickedPlayAgain && (
           <button type="button" disabled style={{ opacity: 0.5 }}>
             Waiting for others…
           </button>

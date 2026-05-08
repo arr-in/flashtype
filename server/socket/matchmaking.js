@@ -24,6 +24,7 @@ function processQueue(io, emitRaceOver) {
 
     // p1 becomes the "host" in the room state, but it doesn't matter for matchmaking
     const { roomCode, room } = createRoom(p1.username, p1.socket.id);
+    room.isMatchmaking = true; // Mark as matchmaking room
     joinRoom(roomCode, p2.username, p2.socket.id);
 
     // Both join the room
