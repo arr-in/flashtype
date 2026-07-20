@@ -3,6 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const { registerSocketEvents } = require("./socket/events");
+const { addSoloEntry, addMultiEntry, getSoloTop, getMultiTop } = require("./leaderboard");
 
 const PORT = process.env.PORT || 3001;
 const rawClientUrls = process.env.CLIENT_URL || "http://localhost:5173";
@@ -39,6 +40,30 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+// ── Leaderboard REST API ─────────────────────────────────────────
+app.post("/api/leaderboard/solo", (req, res) => {
+  const { username, wpm, accuracy, difficulty } = req.body || {};
+  if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
+  addSoloEntry({ username, wpm, accuracy, difficulty });
+  res.json({ leaderboard: getSoloTop(20) });
+});
+
+app.post("/api/leaderboard/multi", (req, res) => {
+  const { username, wpm, accuracy } = req.body || {};
+  if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
+  addMultiEntry({ username, wpm, accuracy });
+  res.json({ leaderboard: getMultiTop(20) });
+});
+
+app.get("/api/leaderboard/solo", (req, res) => {
+  const difficulty = req.query.difficulty || "all";
+  res.json({ leaderboard: getSoloTop(20, difficulty) });
+});
+
+app.get("/api/leaderboard/multi", (_req, res) => {
+  res.json({ leaderboard: getMultiTop(20) });
 });
 
 const server = http.createServer(app);

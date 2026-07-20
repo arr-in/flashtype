@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import TypingBox from "../components/TypingBox";
 import { getSoloTimedText } from "../lib/textBank";
+import { updateSoloStats, getStoredUsername } from "../lib/userStats";
+import { postSoloScore } from "../lib/api";
 
 const difficulties = ["beginner", "easy", "medium", "hard", "expert"];
 
@@ -45,16 +47,24 @@ function Solo() {
   }, [location.state]);
 
   function handleComplete(stats) {
+    // Legacy key (keep for Results personalBest)
     const key = `flashType_best_${difficulty}_${timeLimit}s`;
     const currentBest = Number(localStorage.getItem(key) || 0);
     if (stats.wpm > currentBest) localStorage.setItem(key, String(stats.wpm));
+
+    // Update structured localStorage stats
+    updateSoloStats(difficulty, stats.wpm, stats.accuracy);
+
+    // Submit to in-memory leaderboard (fire and forget)
+    const username = getStoredUsername() || "Anonymous";
+    postSoloScore(username, stats.wpm, stats.accuracy, difficulty);
 
     navigate("/results", {
       state: {
         mode: "solo",
         difficulty,
         timeLimit,
-        fontSize,           // ← pass fontSize so Retry can restore it
+        fontSize,
         soloTelemetry: stats.telemetry || null,
         currentUser: "You",
         results: [

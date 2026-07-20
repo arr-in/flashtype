@@ -4,6 +4,8 @@ import Countdown from "../components/Countdown";
 import RaceTrack from "../components/RaceTrack";
 import TypingBox from "../components/TypingBox";
 import { socket } from "../socket";
+import { updateMultiStats, getStoredUsername } from "../lib/userStats";
+import { postMultiScore } from "../lib/api";
 
 const cursorPalette = ["#63a7ff", "#7fd9a8", "#e0a5ff", "#ffd166", "#8ecae6", "#f28482"];
 
@@ -83,13 +85,24 @@ function Race() {
     }
 
     function onRaceOver(payload) {
+      const results = payload.results || [];
+      // Find own result to submit stats
+      const myResult = results.find((r) => r.username === username);
+      if (myResult) {
+        const placement = myResult.placement || 999;
+        const won = placement === 1;
+        updateMultiStats(myResult.wpm || 0, myResult.accuracy || 0, won);
+        const storedUsername = getStoredUsername() || username;
+        postMultiScore(storedUsername, myResult.wpm || 0, myResult.accuracy || 0);
+      }
+
       navigate("/results", {
         state: {
           mode: "multiplayer",
           roomCode,
           currentUser: username,
           isHost: sessionStorage.getItem("flash_host") === "true",
-          results: payload.results || [],
+          results,
           speedTimeline: timelineRef.current
         }
       });

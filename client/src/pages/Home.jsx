@@ -108,6 +108,15 @@ function Home() {
             </button>
           </div>
         </div>
+
+        <div className="home-aux-links">
+          <button type="button" className="home-aux-link" onClick={() => navigate("/leaderboard")}>
+            🏆 Leaderboard
+          </button>
+          <button type="button" className="home-aux-link" onClick={() => navigate("/stats")}>
+            📊 My Stats
+          </button>
+        </div>
       </div>
     </main>
   );
