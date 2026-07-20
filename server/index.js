@@ -47,14 +47,19 @@ app.post("/api/leaderboard/solo", (req, res) => {
   const { username, wpm, accuracy, difficulty } = req.body || {};
   if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
   addSoloEntry({ username, wpm, accuracy, difficulty });
-  res.json({ leaderboard: getSoloTop(20) });
+  const updated = getSoloTop(20);
+  // Broadcast to every connected client so leaderboard pages update live
+  io.emit("leaderboard_update", { tab: "solo", leaderboard: updated });
+  res.json({ leaderboard: updated });
 });
 
 app.post("/api/leaderboard/multi", (req, res) => {
   const { username, wpm, accuracy } = req.body || {};
   if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
   addMultiEntry({ username, wpm, accuracy });
-  res.json({ leaderboard: getMultiTop(20) });
+  const updated = getMultiTop(20);
+  io.emit("leaderboard_update", { tab: "multi", leaderboard: updated });
+  res.json({ leaderboard: updated });
 });
 
 app.get("/api/leaderboard/solo", (req, res) => {
