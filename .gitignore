@@ -9,3 +9,6 @@ yarn-error.log*
 pnpm-debug.log*
 .DS_Store
 Thumbs.db
+
+# Leaderboard persistent storage — lives on the server, not in git
+server/leaderboard_data.json

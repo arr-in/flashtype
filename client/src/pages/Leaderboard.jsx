@@ -279,7 +279,7 @@ export default function Leaderboard() {
       </div>
 
       <p className="lb-note">
-        ⓘ Scores update live across all players · resets when server restarts · your personal bests are always saved locally
+        ⓘ Scores are saved permanently and update live across all players
       </p>
 
       <div className="lb-footer-links">
