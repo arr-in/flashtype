@@ -1922,3 +1922,35 @@ select {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ── Clerk auth pages ──────────────────────────────────────────────────────── */
+.clerk-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0e0e0e;
+  padding: 24px;
+}
+
+/* Override Clerk card to match dark theme */
+.clerk-auth-page .cl-card {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.clerk-auth-page .cl-headerTitle,
+.clerk-auth-page .cl-headerSubtitle {
+  color: #d1d1d1;
+}
+
+.clerk-auth-page .cl-formButtonPrimary {
+  background: linear-gradient(135deg, #63a7ff, #a78bfa);
+  border: none;
+}
+
+.clerk-auth-page .cl-formButtonPrimary:hover {
+  opacity: 0.9;
+}
+

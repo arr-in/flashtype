@@ -4,12 +4,15 @@ import TypingBox from "../components/TypingBox";
 import { getSoloTimedText } from "../lib/textBank";
 import { updateSoloStats, getStoredUsername } from "../lib/userStats";
 import { postSoloScore } from "../lib/api";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 const difficulties = ["beginner", "easy", "medium", "hard", "expert"];
 
 function Solo() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { getToken, userId: clerkUserId } = useAuth();
+  const { user } = useUser();
   const [difficulty, setDifficulty] = useState("medium");
   const [timeLimit, setTimeLimit] = useState(60);
   const [fontSize, setFontSize] = useState("medium");
@@ -55,9 +58,9 @@ function Solo() {
     // Update structured localStorage stats
     updateSoloStats(difficulty, stats.wpm, stats.accuracy);
 
-    // Submit to in-memory leaderboard (fire and forget)
-    const username = getStoredUsername() || "Anonymous";
-    postSoloScore(username, stats.wpm, stats.accuracy, difficulty);
+    // Submit to leaderboard (Supabase if configured, else server)
+    const username = getStoredUsername(user || null) || "Anonymous";
+    postSoloScore(username, stats.wpm, stats.accuracy, difficulty, clerkUserId, getToken);
 
     navigate("/results", {
       state: {

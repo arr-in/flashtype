@@ -6,6 +6,7 @@ import TypingBox from "../components/TypingBox";
 import { socket } from "../socket";
 import { updateMultiStats, getStoredUsername } from "../lib/userStats";
 import { postMultiScore } from "../lib/api";
+import { useUser } from "@clerk/clerk-react";
 
 const cursorPalette = ["#63a7ff", "#7fd9a8", "#e0a5ff", "#ffd166", "#8ecae6", "#f28482"];
 
@@ -21,6 +22,7 @@ function Race() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state || {};
+  const { user } = useUser();
 
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room") || "";
   const username = state.username || localStorage.getItem("username") || "";
@@ -92,7 +94,7 @@ function Race() {
         const placement = myResult.placement || 999;
         const won = placement === 1;
         updateMultiStats(myResult.wpm || 0, myResult.accuracy || 0, won);
-        const storedUsername = getStoredUsername() || username;
+        const storedUsername = getStoredUsername(user || null) || username;
         postMultiScore(storedUsername, myResult.wpm || 0, myResult.accuracy || 0);
       }
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchSoloLeaderboard, fetchMultiLeaderboard } from "../lib/api";
 import { getUserStats, getStoredUsername } from "../lib/userStats";
 import { socket } from "../socket";
+import { useUser } from "@clerk/clerk-react";
 
 const DIFFICULTIES = ["all", "beginner", "easy", "medium", "hard", "expert"];
 
@@ -44,7 +45,8 @@ export default function Leaderboard() {
   const [newEntryUsername, setNewEntryUsername] = useState(null); // for the "new score" toast
   const toastTimerRef = useRef(null);
 
-  const username = getStoredUsername();
+  const { user } = useUser();
+  const username = getStoredUsername(user || null);
   const userStats = getUserStats();
 
   // ── Initial fetch ─────────────────────────────────────────────────

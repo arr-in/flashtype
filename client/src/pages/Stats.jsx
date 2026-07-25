@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { getUserStats, clearUserStats, getStoredUsername } from "../lib/userStats";
 import { useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 
 const DIFFICULTIES = ["beginner", "easy", "medium", "hard", "expert"];
 
@@ -13,7 +14,8 @@ export default function Stats() {
   const navigate = useNavigate();
   const [, forceRender] = useState(0);
 
-  const username = getStoredUsername();
+  const { user } = useUser();
+  const username = getStoredUsername(user || null);
   const stats = getUserStats();
   const mp = stats.multiplayerStats;
   const winRate = mp.races > 0 ? Math.round((mp.wins / mp.races) * 100) : 0;

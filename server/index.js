@@ -1,7 +1,10 @@
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const { clerkMiddleware, requireAuth } = require("@clerk/express");
 const { registerSocketEvents } = require("./socket/events");
 const { addSoloEntry, addMultiEntry, getSoloTop, getMultiTop } = require("./leaderboard");
 
@@ -38,37 +41,52 @@ app.use(
 );
 app.use(express.json());
 
+// ── Clerk middleware — attaches req.auth to every request ─────────────────────
+// clerkMiddleware() is permissive: it doesn't block unauthenticated requests,
+// it just enriches req. Use requireAuth() on specific routes to enforce auth.
+app.use(clerkMiddleware());
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-// ── Leaderboard REST API ─────────────────────────────────────────
-app.post("/api/leaderboard/solo", (req, res) => {
+// ── Leaderboard REST API ──────────────────────────────────────────────────────
+
+// POST solo score — requires auth (Clerk JWT)
+app.post("/api/leaderboard/solo", requireAuth(), async (req, res) => {
   const { username, wpm, accuracy, difficulty } = req.body || {};
-  if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
-  addSoloEntry({ username, wpm, accuracy, difficulty });
-  const updated = getSoloTop(20);
-  // Broadcast to every connected client so leaderboard pages update live
+  if (!username || wpm == null) {
+    return res.status(400).json({ error: "username and wpm required" });
+  }
+  const clerkUserId = req.auth?.userId;
+  await addSoloEntry({ username, wpm, accuracy, difficulty, clerkUserId });
+  const updated = await getSoloTop(20);
   io.emit("leaderboard_update", { tab: "solo", leaderboard: updated });
   res.json({ leaderboard: updated });
 });
 
-app.post("/api/leaderboard/multi", (req, res) => {
+// POST multi score — requires auth (Clerk JWT)
+app.post("/api/leaderboard/multi", requireAuth(), async (req, res) => {
   const { username, wpm, accuracy } = req.body || {};
-  if (!username || wpm == null) return res.status(400).json({ error: "username and wpm required" });
-  addMultiEntry({ username, wpm, accuracy });
-  const updated = getMultiTop(20);
+  if (!username || wpm == null) {
+    return res.status(400).json({ error: "username and wpm required" });
+  }
+  const clerkUserId = req.auth?.userId;
+  await addMultiEntry({ username, wpm, accuracy, clerkUserId });
+  const updated = await getMultiTop(20);
   io.emit("leaderboard_update", { tab: "multi", leaderboard: updated });
   res.json({ leaderboard: updated });
 });
 
-app.get("/api/leaderboard/solo", (req, res) => {
+// GET solo leaderboard — public
+app.get("/api/leaderboard/solo", async (req, res) => {
   const difficulty = req.query.difficulty || "all";
-  res.json({ leaderboard: getSoloTop(20, difficulty) });
+  res.json({ leaderboard: await getSoloTop(20, difficulty) });
 });
 
-app.get("/api/leaderboard/multi", (_req, res) => {
-  res.json({ leaderboard: getMultiTop(20) });
+// GET multi leaderboard — public
+app.get("/api/leaderboard/multi", async (_req, res) => {
+  res.json({ leaderboard: await getMultiTop(20) });
 });
 
 const server = http.createServer(app);
@@ -87,4 +105,6 @@ registerSocketEvents(io);
 server.listen(PORT, () => {
   console.log(`FlashType server running on port ${PORT}`);
   console.log(`Allowed client origins: ${allowedOrigins.join(", ")}`);
+  console.log(`Clerk auth: ${process.env.CLERK_SECRET_KEY ? "✓ configured" : "✗ CLERK_SECRET_KEY not set"}`);
+  console.log(`Supabase: ${process.env.SUPABASE_URL ? "✓ configured" : "✗ SUPABASE_URL not set"}`);
 });

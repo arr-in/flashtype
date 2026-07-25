@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.14.0",
+    "@supabase/supabase-js": "^2.45.0",
     "flashtype": "file:..",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

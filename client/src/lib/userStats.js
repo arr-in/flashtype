@@ -87,6 +87,22 @@ export function clearUserStats() {
   localStorage.removeItem(LS_KEY);
 }
 
-export function getStoredUsername() {
+/**
+ * Returns the display username.
+ * If a Clerk user object is passed (from useUser()), it takes priority.
+ * Falls back to localStorage → userStats → "Anonymous".
+ *
+ * @param {object|null} [clerkUser] - Clerk user object from useUser()
+ */
+export function getStoredUsername(clerkUser) {
+  if (clerkUser) {
+    return (
+      clerkUser.username ||
+      clerkUser.firstName ||
+      clerkUser.fullName ||
+      clerkUser.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+      ""
+    );
+  }
   return localStorage.getItem("username") || getUserStats().username || "";
 }
