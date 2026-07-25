@@ -6,17 +6,22 @@ import App from "./App";
 import "./styles.css";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const isValidClerkKey = Boolean(
+  PUBLISHABLE_KEY &&
+  typeof PUBLISHABLE_KEY === "string" &&
+  PUBLISHABLE_KEY.startsWith("pk_")
+);
 
-if (!PUBLISHABLE_KEY) {
+if (!isValidClerkKey) {
   console.warn(
-    "[FlashType] VITE_CLERK_PUBLISHABLE_KEY is not set. " +
-    "Auth features will be disabled. Copy client/.env.example → client/.env and fill in your keys."
+    "[FlashType] VITE_CLERK_PUBLISHABLE_KEY is not set or invalid in environment. " +
+    "Auth features will be disabled until added to Vercel/env settings."
   );
 }
 
 function Root() {
-  if (!PUBLISHABLE_KEY) {
-    // Run without Clerk if key is missing (dev fallback)
+  if (!isValidClerkKey) {
+    // Run without Clerk if key is missing (dev / unconfigured production fallback)
     return (
       <BrowserRouter>
         <App />
