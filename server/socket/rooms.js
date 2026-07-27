@@ -38,7 +38,7 @@ function createRoom(hostUsername, hostSocketId) {
     text: "",
     settings: {
       difficulty: "hard",
-      timeLimit: 60,
+      timeLimit: 30,
       includeNumbers: true,
       includeSymbols: true,
       allowCaps: true,
@@ -153,7 +153,7 @@ function buildResults(roomCode) {
   const room = rooms[roomCode];
   if (!room) return [];
   const raceDurationMs = 60000;
-  const roomDurationMs = Number(room.settings?.timeLimit || 60) * 1000;
+  const roomDurationMs = Number(room.settings?.timeLimit || 30) * 1000;
 
   function calculateScore(player) {
     const progressScore = (player.progress || 0) * 12;
@@ -224,7 +224,7 @@ function startRace(roomCode, settings = {}) {
 
   room.settings = {
     difficulty: settings.difficulty || room.settings?.difficulty || "hard",
-    timeLimit: Number(settings.timeLimit || room.settings?.timeLimit || 60),
+    timeLimit: Number(settings.timeLimit || room.settings?.timeLimit || 30),
     includeNumbers: settings.includeNumbers ?? room.settings?.includeNumbers ?? true,
     includeSymbols: settings.includeSymbols ?? room.settings?.includeSymbols ?? true,
     allowCaps: settings.allowCaps ?? room.settings?.allowCaps ?? true,

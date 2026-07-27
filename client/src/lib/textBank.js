@@ -55,9 +55,9 @@ const timedWordTargets = {
   90: 540
 };
 
-export function getSoloTimedText(difficulty = "medium", timeLimitSec = 60) {
+export function getSoloTimedText(difficulty = "medium", timeLimitSec = 30) {
   const list = soloTextBank[difficulty] || soloTextBank.medium;
-  const targetWordCount = timedWordTargets[timeLimitSec] || 220;
+  const targetWordCount = timedWordTargets[timeLimitSec] || 110;
   const words = [];
   let safety = 0;
 

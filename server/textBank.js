@@ -71,9 +71,9 @@ function applyRaceFilters(text, options = {}) {
 }
 
 function targetWordsByLength(length = "medium") {
-  if (length === "short") return 35;
-  if (length === "long") return 80;
-  return 55;
+  if (length === "short") return 25;
+  if (length === "long") return 60;
+  return 35;
 }
 
 function applyWordLength(text, options = {}) {
