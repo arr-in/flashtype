@@ -27,7 +27,10 @@ function Race() {
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room") || "";
   const username = state.username || localStorage.getItem("username") || "";
   const raceText = state.text || "";
-  const timeLimitSec = state.settings?.timeLimit || 30;
+  const isMatchmaking = Boolean(state.isMatchmaking);
+  const rawTimeLimit = Number(state.settings?.timeLimit);
+  // Force 30s for online matchmaking, default to 30s if unspecified
+  const timeLimitSec = isMatchmaking ? 30 : (rawTimeLimit && rawTimeLimit > 0 ? rawTimeLimit : 30);
 
   const [countdownValue, setCountdownValue] = useState("3");
   const [showCountdown, setShowCountdown] = useState(true);

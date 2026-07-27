@@ -47,7 +47,7 @@ function Online() {
             isHost: false,
             isMatchmaking: true,
             players: payload.players,
-            settings: payload.settings
+            settings: { ...(payload.settings || {}), timeLimit: 30 }
           }
         });
       }, 2000);
