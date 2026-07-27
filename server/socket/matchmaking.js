@@ -18,9 +18,25 @@ function leaveQueue(socketId) {
 }
 
 function processQueue(io, emitRaceOver) {
-  if (matchmakingQueue.length >= 2) {
+  // Purge disconnected sockets from queue
+  for (let i = matchmakingQueue.length - 1; i >= 0; i--) {
+    if (!matchmakingQueue[i].socket || !matchmakingQueue[i].socket.connected) {
+      matchmakingQueue.splice(i, 1);
+    }
+  }
+
+  while (matchmakingQueue.length >= 2) {
     const p1 = matchmakingQueue.shift();
     const p2 = matchmakingQueue.shift();
+
+    if (!p1.socket || !p1.socket.connected) {
+      if (p2.socket && p2.socket.connected) matchmakingQueue.unshift(p2);
+      continue;
+    }
+    if (!p2.socket || !p2.socket.connected) {
+      if (p1.socket && p1.socket.connected) matchmakingQueue.unshift(p1);
+      continue;
+    }
 
     // p1 becomes the "host" in the room state, but it doesn't matter for matchmaking
     const { roomCode, room } = createRoom(p1.username, p1.socket.id);
@@ -31,10 +47,10 @@ function processQueue(io, emitRaceOver) {
     p1.socket.join(roomCode);
     p2.socket.join(roomCode);
 
-    // Prepare race
+    // Prepare race with 30s default duration
     const startResult = startRace(roomCode, {
       difficulty: "medium",
-      timeLimit: 60,
+      timeLimit: 30,
       includeNumbers: true,
       includeSymbols: true,
       allowCaps: true,
@@ -43,10 +59,6 @@ function processQueue(io, emitRaceOver) {
 
     if (startResult.error) return;
 
-    // We emit "match_found" instead of "race_starting". 
-    // The clients will show "Opponent: [name]" for 2 seconds, then transition to /race where the 3..2..1..GO happens.
-    // Total countdown on client: 2s (Match Found) + 4s (Race countdown) = 6s.
-    
     const playersMap = startResult.room.players.map(p => ({
       username: p.username,
       progress: 0,
@@ -85,7 +97,7 @@ function processQueue(io, emitRaceOver) {
 
       const timeout = setTimeout(
         () => emitRaceOver(roomCode),
-        Number(startResult.room.settings.timeLimit) * 1000
+        Number(startResult.room.settings?.timeLimit || 30) * 1000
       );
       setRoomTimeout(roomCode, timeout);
     }, 6000); // 2s match found UI + 4s countdown

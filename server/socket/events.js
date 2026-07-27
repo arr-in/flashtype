@@ -142,7 +142,7 @@ function registerSocketEvents(io) {
         });
         const timeout = setTimeout(
           () => emitRaceOver(roomCode),
-          Number(startResult.room.settings?.timeLimit || 60) * 1000
+          Number(startResult.room.settings?.timeLimit || 30) * 1000
         );
         setRoomTimeout(roomCode, timeout);
       }, 4000);
@@ -243,7 +243,7 @@ function registerSocketEvents(io) {
           });
           const timeout = setTimeout(
             () => emitRaceOver(roomCode),
-            Number(startResult.room.settings?.timeLimit || 60) * 1000
+            Number(startResult.room.settings?.timeLimit || 30) * 1000
           );
           setRoomTimeout(roomCode, timeout);
         }, 4000);
@@ -303,7 +303,12 @@ function registerSocketEvents(io) {
       const room = getRoom(removedInfo.roomCode);
       if (!room) return;
       broadcastPlayerList(removedInfo.roomCode);
-      if (room.players.length < 2 && room.status === "racing") emitRaceOver(removedInfo.roomCode);
+      if (room.players.length < 2 && (room.status === "racing" || room.status === "countdown")) {
+        emitRaceOver(removedInfo.roomCode);
+      }
+      if (room.players.length < 2) {
+        io.to(removedInfo.roomCode).emit("opponent_disconnected");
+      }
     });
 
     socket.on("disconnect", () => {
@@ -314,14 +319,14 @@ function registerSocketEvents(io) {
       if (!room) return;
       broadcastPlayerList(removedInfo.roomCode);
       
-      if (room.players.length < 2 && room.status === "racing") {
+      if (room.players.length < 2 && (room.status === "racing" || room.status === "countdown")) {
         // immediately declare opponent winner (end race gracefully)
         emitRaceOver(removedInfo.roomCode);
       }
       
       // Also notify room if it was matchmaking (opponent disconnected during countdown etc)
       if (room.players.length < 2) {
-         io.to(removedInfo.roomCode).emit("opponent_disconnected");
+        io.to(removedInfo.roomCode).emit("opponent_disconnected");
       }
     });
   });

@@ -16,7 +16,7 @@ function TypingBox({
   enabled = true,
   ghostCursors = [],
   timedMode = false,
-  timeLimitSec = 60,
+  timeLimitSec = 30,
   disqualifyAfterWrongWords = 0,
   onDisqualify,
   onRestart,

@@ -14,7 +14,7 @@ function Solo() {
   const { getToken, userId: clerkUserId } = useAuth();
   const { user } = useUser();
   const [difficulty, setDifficulty] = useState("medium");
-  const [timeLimit, setTimeLimit] = useState(60);
+  const [timeLimit, setTimeLimit] = useState(30);
   const [fontSize, setFontSize] = useState("medium");
   const [text, setText] = useState("");
   const [sessionId, setSessionId] = useState(0);

@@ -27,12 +27,13 @@ function Race() {
   const roomCode = state.roomCode || sessionStorage.getItem("flash_room") || "";
   const username = state.username || localStorage.getItem("username") || "";
   const raceText = state.text || "";
-  const timeLimitSec = state.settings?.timeLimit || 60;
+  const timeLimitSec = state.settings?.timeLimit || 30;
 
   const [countdownValue, setCountdownValue] = useState("3");
   const [showCountdown, setShowCountdown] = useState(true);
   const [typingEnabled, setTypingEnabled] = useState(false);
   const [players, setPlayers] = useState(state.players || []);
+  const [disconnMsg, setDisconnMsg] = useState("");
   // Initialize at mount so all position_updates use a consistent start time
   const raceStartRef = useRef(Date.now());
   const timelineRef = useRef({});
@@ -110,13 +111,19 @@ function Race() {
       });
     }
 
+    function onOpponentDisconnected() {
+      setDisconnMsg("Opponent disconnected.");
+    }
+
     socket.on("position_update", onPositionUpdate);
     socket.on("race_over", onRaceOver);
+    socket.on("opponent_disconnected", onOpponentDisconnected);
     return () => {
       socket.off("position_update", onPositionUpdate);
       socket.off("race_over", onRaceOver);
+      socket.off("opponent_disconnected", onOpponentDisconnected);
     };
-  }, [navigate, roomCode, username]);
+  }, [navigate, roomCode, username, user]);
 
   function handleProgress({ charsTyped, wpm, accuracy }) {
     socket.emit("typing_update", {
@@ -174,6 +181,7 @@ function Race() {
           </button>
         )}
         {isDisqualified && <p className="error-text">Disqualified: 5 wrong words in a row.</p>}
+        {disconnMsg && <p className="error-text" style={{ color: "#ffd166" }}>{disconnMsg}</p>}
       </div>
       <RaceTrack players={trackPlayers} />
       <TypingBox

@@ -1,42 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
+import { useUser } from "@clerk/clerk-react";
+import { getStoredUsername } from "../lib/userStats";
 
 function Online() {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [status, setStatus] = useState("searching"); // searching, found
   const [opponent, setOpponent] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const transitionTimerRef = useRef(null);
 
   useEffect(() => {
-    const username = localStorage.getItem("username");
-    if (!username) {
-      navigate("/");
-      return;
+    const activeUsername = getStoredUsername(user || null) || localStorage.getItem("username") || "Anonymous";
+    localStorage.setItem("username", activeUsername);
+
+    function joinQueue() {
+      socket.emit("join_matchmaking", { username: activeUsername });
     }
 
-    if (!socket.connected) socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinQueue();
+    }
 
-    // Join matchmaking queue
-    socket.emit("join_matchmaking", { username });
+    function onConnect() {
+      joinQueue();
+    }
 
     function onMatchFound(payload) {
       setStatus("found");
       setOpponent(payload.opponent);
       
       // Keep UI showing "Match Found" for 2 seconds, then transition to Race
-      setTimeout(() => {
-        // We set flash_room and flash_host so Race component can read them if needed. 
-        // For matchmaking, host doesn't really matter for starting since server handles it.
+      transitionTimerRef.current = setTimeout(() => {
         sessionStorage.setItem("flash_room", payload.roomCode);
         sessionStorage.setItem("flash_host", "false"); 
 
         navigate("/race", {
           state: {
             roomCode: payload.roomCode,
-            username,
+            username: activeUsername,
             text: payload.text,
-            isHost: false, // neither is host for UI purposes, prevent "End Race" button
-            isMatchmaking: true, // Hide play again and settings buttons
+            isHost: false,
+            isMatchmaking: true,
             players: payload.players,
             settings: payload.settings
           }
@@ -44,20 +53,33 @@ function Online() {
       }, 2000);
     }
 
-    function onDisconnect() {
-      // If server disconnects or something, go back
-      navigate("/");
+    function onOpponentDisconnected() {
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+      setStatus("searching");
+      setOpponent(null);
+      setErrorMsg("Opponent left. Searching for another opponent...");
+      setTimeout(() => setErrorMsg(""), 3000);
+      joinQueue();
     }
 
+    function onDisconnect() {
+      setErrorMsg("Disconnected from server. Retrying...");
+    }
+
+    socket.on("connect", onConnect);
     socket.on("match_found", onMatchFound);
+    socket.on("opponent_disconnected", onOpponentDisconnected);
     socket.on("disconnect", onDisconnect);
 
     return () => {
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
       socket.emit("leave_matchmaking");
+      socket.off("connect", onConnect);
       socket.off("match_found", onMatchFound);
+      socket.off("opponent_disconnected", onOpponentDisconnected);
       socket.off("disconnect", onDisconnect);
     };
-  }, [navigate]);
+  }, [navigate, user]);
 
   function handleCancel() {
     socket.emit("leave_matchmaking");
@@ -98,6 +120,8 @@ function Online() {
             <p className="solo-setup-label" style={{ marginTop: "20px" }}>Prepare to type...</p>
           </>
         )}
+
+        {errorMsg && <p className="error-text lobby-error" style={{ marginTop: "20px" }}>{errorMsg}</p>}
       </div>
     </main>
   );

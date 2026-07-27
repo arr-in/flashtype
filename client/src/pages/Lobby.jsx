@@ -40,7 +40,7 @@ function Lobby() {
   const [raceSettings, setRaceSettings] = useState(() => {
     return location.state?.settings || {
       difficulty: "hard",
-      timeLimit: 60,
+      timeLimit: 30,
       includeNumbers: true,
       includeSymbols: true,
       allowCaps: true,
