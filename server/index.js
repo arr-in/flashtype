@@ -7,6 +7,7 @@ const { Server } = require("socket.io");
 const { clerkMiddleware, requireAuth } = require("@clerk/express");
 const { registerSocketEvents } = require("./socket/events");
 const { addSoloEntry, addMultiEntry, getSoloTop, getMultiTop } = require("./leaderboard");
+const { setupSocketRedisAdapter } = require("./redis");
 
 const PORT = process.env.PORT || 3001;
 const rawClientUrls = process.env.CLIENT_URL || "http://localhost:5173";
@@ -102,9 +103,13 @@ const io = new Server(server, {
 
 registerSocketEvents(io);
 
+// Attach Redis adapter for horizontal scaling (no-op if REDIS_URL not set)
+setupSocketRedisAdapter(io);
+
 server.listen(PORT, () => {
   console.log(`FlashType server running on port ${PORT}`);
   console.log(`Allowed client origins: ${allowedOrigins.join(", ")}`);
-  console.log(`Clerk auth: ${process.env.CLERK_SECRET_KEY ? "✓ configured" : "✗ CLERK_SECRET_KEY not set"}`);
-  console.log(`Supabase: ${process.env.SUPABASE_URL ? "✓ configured" : "✗ SUPABASE_URL not set"}`);
+  console.log(`Clerk auth: ${process.env.CLERK_SECRET_KEY  ? "✓ configured" : "✗ CLERK_SECRET_KEY not set"}`);
+  console.log(`Supabase:   ${process.env.SUPABASE_URL       ? "✓ configured" : "✗ SUPABASE_URL not set"}`);
+  console.log(`Redis:      ${process.env.REDIS_URL           ? "✓ " + process.env.REDIS_URL : "✗ REDIS_URL not set (single-node mode)"}`);
 });
