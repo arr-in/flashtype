@@ -1,145 +1,193 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { getStoredUsername } from "../lib/userStats";
+import GuestUsernameModal from "../components/GuestUsernameModal";
+
+/* The Flash chest lightning bolt — scarlet red circle with gold bolt */
+function FlashLogo({ size = 64 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 80 80"
+      fill="none"
+      className="flash-logo-svg"
+      aria-label="Flash logo"
+    >
+      <circle cx="40" cy="40" r="38" fill="#CC1111" stroke="#FFD700" strokeWidth="3" />
+      <polygon
+        points="48,8 22,44 36,44 32,72 58,34 44,34"
+        fill="#FFD700"
+      />
+    </svg>
+  );
+}
+
+function ModeCard({ icon, title, desc, featured, badge, onClick }) {
+  return (
+    <button
+      type="button"
+      className={`hm-card${featured ? " hm-card--featured" : ""}`}
+      onClick={onClick}
+    >
+      {badge && <span className="hm-card-badge">{badge}</span>}
+      <span className="hm-card-icon">{icon}</span>
+      <span className="hm-card-title">{title}</span>
+      <span className="hm-card-desc">{desc}</span>
+    </button>
+  );
+}
 
 function Home() {
   const navigate = useNavigate();
   const { isLoaded, isSignedIn, user } = useUser();
+  const [guestTarget, setGuestTarget] = useState(null); // path waiting for username
 
   const username = getStoredUsername(isSignedIn ? user : null);
 
-  function playAsGuest(path) {
-    // Generate a guest username and store it
-    const guestName = "Guest" + Math.floor(1000 + Math.random() * 9000);
-    if (!localStorage.getItem("username")) {
-      localStorage.setItem("username", guestName);
+  /* Called when a mode card is clicked while not signed in */
+  function handleGuestModeClick(path) {
+    const stored = localStorage.getItem("username");
+    if (stored && stored.length >= 3) {
+      // Already has a valid username — go straight
+      navigate(path);
+    } else {
+      // Show username modal first
+      setGuestTarget(path);
     }
+  }
+
+  /* Called from modal when username is confirmed */
+  function handleGuestConfirm(name, path) {
+    setGuestTarget(null);
     navigate(path);
   }
 
   return (
-    <main className="home-page">
-      {/* Ambient background bolts */}
-      <div className="home-bg-bolts" aria-hidden="true">
-        <svg className="bolt bolt-1" viewBox="0 0 24 24" fill="none">
-          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
-        </svg>
-        <svg className="bolt bolt-2" viewBox="0 0 24 24" fill="none">
-          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
-        </svg>
-        <svg className="bolt bolt-3" viewBox="0 0 24 24" fill="none">
-          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
-        </svg>
+    <main className="hm-page">
+      {/* Speed lines background */}
+      <div className="hm-speed-lines" aria-hidden="true">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className={`hm-speed-line hm-speed-line--${i}`} />
+        ))}
       </div>
 
-      {/* Top-right user widget */}
-      <div className="home-topbar">
+      {/* Top bar */}
+      <div className="hm-topbar">
         {!isLoaded ? null : isSignedIn ? (
-          <div className="home-user-pill">
+          <div className="hm-user-pill">
             <UserButton afterSignOutUrl="/" />
-            <span className="home-user-name">{username}</span>
+            <span className="hm-user-name">{username}</span>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div className="hm-auth-btns">
             <SignInButton mode="modal">
-              <button type="button" className="home-signin-btn">Sign In</button>
+              <button type="button" className="hm-btn-ghost">Sign In</button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <button type="button" className="home-signup-btn">Sign Up</button>
+              <button type="button" className="hm-btn-primary">Sign Up</button>
             </SignUpButton>
           </div>
         )}
       </div>
 
       {/* Hero */}
-      <div className="home-hero">
-        <div className="home-logo-wrap">
-          <svg className="home-bolt-logo" viewBox="0 0 24 24" fill="none">
-            <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
-          </svg>
-          <h1 className="home-title">FlashType</h1>
+      <div className="hm-hero">
+        <div className="hm-hero-logo">
+          <FlashLogo size={72} />
         </div>
-        <p className="home-subtitle">Real-time multiplayer typing battles</p>
+        <h1 className="hm-title">FlashType</h1>
+        <p className="hm-subtitle">Real-time multiplayer typing battles</p>
+        {isSignedIn && (
+          <div className="hm-hero-tag">
+            <span className="hm-tag-dot" />
+            Signed in as <strong>{username}</strong> — scores saved to leaderboard
+          </div>
+        )}
       </div>
 
       {/* Mode cards */}
-      {isSignedIn ? (
-        <div className="home-modes">
-          <button type="button" className="home-mode-card" onClick={() => navigate("/solo")}>
-            <span className="home-card-icon">⚡</span>
-            <span className="home-card-title">Solo Practice</span>
-            <span className="home-card-desc">Train your speed &amp; accuracy alone</span>
-          </button>
+      <div className="hm-modes">
+        {isSignedIn ? (
+          <>
+            <ModeCard
+              icon="⚡"
+              title="Solo Practice"
+              desc="Train your speed & accuracy alone"
+              onClick={() => navigate("/solo")}
+            />
+            <ModeCard
+              icon="🌍"
+              title="Play Online"
+              desc="Match with a random opponent"
+              featured
+              badge="LIVE"
+              onClick={() => navigate("/online")}
+            />
+            <ModeCard
+              icon="🏎️"
+              title="Play with Friends"
+              desc="Race others in custom rooms"
+              onClick={() => navigate("/lobby")}
+            />
+          </>
+        ) : (
+          <>
+            <ModeCard
+              icon="⚡"
+              title="Solo Practice"
+              desc="Train your speed & accuracy alone"
+              onClick={() => handleGuestModeClick("/solo")}
+            />
+            <ModeCard
+              icon="🌍"
+              title="Play Online"
+              desc="Match with a random opponent"
+              featured
+              badge="LIVE"
+              onClick={() => handleGuestModeClick("/online")}
+            />
+            <ModeCard
+              icon="🏎️"
+              title="Play with Friends"
+              desc="Race others in custom rooms"
+              onClick={() => handleGuestModeClick("/lobby")}
+            />
+          </>
+        )}
+      </div>
 
-          <button type="button" className="home-mode-card home-mode-card--featured" onClick={() => navigate("/online")}>
-            <span className="home-card-badge">LIVE</span>
-            <span className="home-card-icon">🌍</span>
-            <span className="home-card-title">Play Online</span>
-            <span className="home-card-desc">Match with a random opponent</span>
-          </button>
-
-          <button type="button" className="home-mode-card" onClick={() => navigate("/lobby")}>
-            <span className="home-card-icon">🏎️</span>
-            <span className="home-card-title">Play with Friends</span>
-            <span className="home-card-desc">Race others in custom rooms</span>
-          </button>
-        </div>
-      ) : (
-        /* Not signed in — show all modes + guest option */
-        <div className="home-guest-section">
-          <div className="home-modes">
-            <SignInButton mode="modal">
-              <button type="button" className="home-mode-card">
-                <span className="home-card-icon">⚡</span>
-                <span className="home-card-title">Solo Practice</span>
-                <span className="home-card-desc">Train your speed &amp; accuracy alone</span>
-              </button>
-            </SignInButton>
-
-            <SignInButton mode="modal">
-              <button type="button" className="home-mode-card home-mode-card--featured">
-                <span className="home-card-badge">LIVE</span>
-                <span className="home-card-icon">🌍</span>
-                <span className="home-card-title">Play Online</span>
-                <span className="home-card-desc">Match with a random opponent</span>
-              </button>
-            </SignInButton>
-
-            <SignInButton mode="modal">
-              <button type="button" className="home-mode-card">
-                <span className="home-card-icon">🏎️</span>
-                <span className="home-card-title">Play with Friends</span>
-                <span className="home-card-desc">Race others in custom rooms</span>
-              </button>
-            </SignInButton>
-          </div>
-
-          <div className="home-divider">
-            <span>or</span>
-          </div>
-
-          <button
-            type="button"
-            className="home-guest-btn"
-            onClick={() => playAsGuest("/solo")}
-          >
-            ⚡ Play as Guest
-          </button>
-          <p className="home-guest-note">No account needed — guest stats won't be saved</p>
-        </div>
+      {/* Guest CTA when not signed in */}
+      {!isSignedIn && (
+        <p className="hm-guest-hint">
+          Playing as guest — scores won't count toward leaderboard.{" "}
+          <SignInButton mode="modal">
+            <span className="hm-inline-link">Sign in to save them.</span>
+          </SignInButton>
+        </p>
       )}
 
       {/* Aux links */}
-      <div className="home-aux">
-        <button type="button" className="home-aux-link" onClick={() => navigate("/leaderboard")}>
+      <div className="hm-aux">
+        <button type="button" className="hm-aux-link" onClick={() => navigate("/leaderboard")}>
           🏆 Leaderboard
         </button>
         {isSignedIn && (
-          <button type="button" className="home-aux-link" onClick={() => navigate("/stats")}>
+          <button type="button" className="hm-aux-link" onClick={() => navigate("/stats")}>
             📊 My Stats
           </button>
         )}
       </div>
+
+      {/* Guest username modal */}
+      {guestTarget && (
+        <GuestUsernameModal
+          targetPath={guestTarget}
+          onConfirm={handleGuestConfirm}
+          onCancel={() => setGuestTarget(null)}
+        />
+      )}
     </main>
   );
 }

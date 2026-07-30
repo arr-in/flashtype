@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { SignIn, SignUp, useAuth } from "@clerk/clerk-react";
+import { SignIn, SignUp } from "@clerk/clerk-react";
 import Home from "./pages/Home";
 import Solo from "./pages/Solo";
 import Lobby from "./pages/Lobby";
@@ -9,31 +9,20 @@ import Online from "./pages/Online";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 
-/**
- * Wraps a route so it redirects to /sign-in if the user is not signed in.
- * If Clerk is not configured (no publishable key), renders children directly.
- */
-function ProtectedRoute({ children }) {
-  const { isLoaded, isSignedIn } = useAuth();
-
-  // While Clerk loads, render nothing to avoid flash
-  if (!isLoaded) return null;
-
-  if (!isSignedIn) {
-    return <Navigate to="/sign-in" replace />;
-  }
-
-  return children;
-}
-
 function App() {
   return (
     <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Home />} />
+      {/* Public routes — all accessible to guests & signed-in users */}
+      <Route path="/"           element={<Home />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/solo"       element={<Solo />} />
+      <Route path="/lobby"      element={<Lobby />} />
+      <Route path="/online"     element={<Online />} />
+      <Route path="/race"       element={<Race />} />
+      <Route path="/results"    element={<Results />} />
+      <Route path="/stats"      element={<Stats />} />
 
-      {/* Clerk auth routes — Clerk's built-in UI */}
+      {/* Clerk auth routes */}
       <Route
         path="/sign-in/*"
         element={
@@ -50,14 +39,6 @@ function App() {
           </div>
         }
       />
-
-      {/* Protected routes — require sign-in */}
-      <Route path="/solo" element={<Solo />} />
-      <Route path="/results" element={<Results />} />
-      <Route path="/lobby" element={<ProtectedRoute><Lobby /></ProtectedRoute>} />
-      <Route path="/online" element={<ProtectedRoute><Online /></ProtectedRoute>} />
-      <Route path="/race" element={<ProtectedRoute><Race /></ProtectedRoute>} />
-      <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
