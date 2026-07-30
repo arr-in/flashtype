@@ -1,12 +1,7 @@
 /* ── BN Elements (DC Flash / comic book font) ── */
-/* Drop BNElements.woff2 (or .ttf/.otf) into client/public/fonts/ */
 @font-face {
   font-family: "BN Elements";
-  src:
-    url("/fonts/BNElements.woff2") format("woff2"),
-    url("/fonts/BNElements.woff")  format("woff"),
-    url("/fonts/BNElements.ttf")   format("truetype"),
-    url("/fonts/BNElements.otf")   format("opentype");
+  src: url("/fonts/elements.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
