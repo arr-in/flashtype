@@ -52,11 +52,11 @@ function App() {
       />
 
       {/* Protected routes — require sign-in */}
-      <Route path="/solo" element={<ProtectedRoute><Solo /></ProtectedRoute>} />
+      <Route path="/solo" element={<Solo />} />
+      <Route path="/results" element={<Results />} />
       <Route path="/lobby" element={<ProtectedRoute><Lobby /></ProtectedRoute>} />
       <Route path="/online" element={<ProtectedRoute><Online /></ProtectedRoute>} />
       <Route path="/race" element={<ProtectedRoute><Race /></ProtectedRoute>} />
-      <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
       <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

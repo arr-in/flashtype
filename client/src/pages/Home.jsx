@@ -1,119 +1,144 @@
 import { useNavigate } from "react-router-dom";
-import { useUser, UserButton, SignInButton } from "@clerk/clerk-react";
+import { useUser, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { getStoredUsername } from "../lib/userStats";
 
 function Home() {
   const navigate = useNavigate();
   const { isLoaded, isSignedIn, user } = useUser();
 
-  // Resolve display name from Clerk or localStorage fallback
   const username = getStoredUsername(isSignedIn ? user : null);
 
-  function handleAction(path) {
-    if (!isSignedIn) {
-      // If Clerk is loaded but user isn't signed in, trigger sign-in flow
-      return;
+  function playAsGuest(path) {
+    // Generate a guest username and store it
+    const guestName = "Guest" + Math.floor(1000 + Math.random() * 9000);
+    if (!localStorage.getItem("username")) {
+      localStorage.setItem("username", guestName);
     }
     navigate(path);
   }
 
   return (
-    <main className="solo-setup-page">
-      {/* User identity widget */}
-      <div className="home-username-widget">
-        {!isLoaded ? (
-          // Skeleton while Clerk loads
-          <div className="username-display-box" style={{ display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.05)", padding: "8px 16px", borderRadius: "100px" }}>
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.9rem" }}>Loading…</span>
-          </div>
-        ) : isSignedIn ? (
-          <div className="username-display-box" style={{ display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.05)", padding: "8px 16px", borderRadius: "100px" }}>
+    <main className="home-page">
+      {/* Ambient background bolts */}
+      <div className="home-bg-bolts" aria-hidden="true">
+        <svg className="bolt bolt-1" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
+        </svg>
+        <svg className="bolt bolt-2" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
+        </svg>
+        <svg className="bolt bolt-3" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
+        </svg>
+      </div>
+
+      {/* Top-right user widget */}
+      <div className="home-topbar">
+        {!isLoaded ? null : isSignedIn ? (
+          <div className="home-user-pill">
             <UserButton afterSignOutUrl="/" />
-            <span style={{ color: "#7fd9a8", fontWeight: "600" }}>{username}</span>
+            <span className="home-user-name">{username}</span>
           </div>
         ) : (
-          <SignInButton mode="modal">
-            <button type="button" className="flash-start-button" style={{ padding: "8px 20px", fontSize: "0.9rem" }}>
-              Sign In
-            </button>
-          </SignInButton>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <SignInButton mode="modal">
+              <button type="button" className="home-signin-btn">Sign In</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button type="button" className="home-signup-btn">Sign Up</button>
+            </SignUpButton>
+          </div>
         )}
       </div>
 
-      <div className="solo-setup-center">
-        <h1 className="solo-setup-title">FlashType</h1>
-        <p className="solo-setup-label" style={{ marginBottom: 8 }}>Choose your mode</p>
-
-        <div className="solo-setup-group">
-          <div className="home-mode-buttons">
-            {isSignedIn ? (
-              <>
-                <button
-                  type="button"
-                  className="home-mode-btn"
-                  onClick={() => handleAction("/solo")}
-                >
-                  <span className="home-mode-icon">⚡</span>
-                  <span className="home-mode-name">Solo Practice</span>
-                  <span className="home-mode-desc">Train your speed &amp; accuracy alone</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="home-mode-btn"
-                  onClick={() => handleAction("/online")}
-                >
-                  <span className="home-mode-icon">🌍</span>
-                  <span className="home-mode-name">Play Online</span>
-                  <span className="home-mode-desc">Match with a random opponent</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="home-mode-btn"
-                  onClick={() => handleAction("/lobby")}
-                >
-                  <span className="home-mode-icon">🏎️</span>
-                  <span className="home-mode-name">Play with Friends</span>
-                  <span className="home-mode-desc">Race others in custom rooms</span>
-                </button>
-              </>
-            ) : (
-              /* Not signed in — show a CTA to sign in */
-              <div style={{ textAlign: "center", padding: "24px 0" }}>
-                <p className="solo-setup-label" style={{ marginBottom: 16 }}>
-                  Sign in to start playing
-                </p>
-                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                  <SignInButton mode="modal">
-                    <button type="button" className="flash-start-button" style={{ padding: "12px 28px" }}>
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <button
-                    type="button"
-                    className="lobby-secondary-btn"
-                    style={{ padding: "12px 28px" }}
-                    onClick={() => navigate("/sign-up")}
-                  >
-                    Create Account
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Hero */}
+      <div className="home-hero">
+        <div className="home-logo-wrap">
+          <svg className="home-bolt-logo" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" fill="currentColor"/>
+          </svg>
+          <h1 className="home-title">FlashType</h1>
         </div>
+        <p className="home-subtitle">Real-time multiplayer typing battles</p>
+      </div>
 
-        <div className="home-aux-links">
-          <button type="button" className="home-aux-link" onClick={() => navigate("/leaderboard")}>
-            🏆 Leaderboard
+      {/* Mode cards */}
+      {isSignedIn ? (
+        <div className="home-modes">
+          <button type="button" className="home-mode-card" onClick={() => navigate("/solo")}>
+            <span className="home-card-icon">⚡</span>
+            <span className="home-card-title">Solo Practice</span>
+            <span className="home-card-desc">Train your speed &amp; accuracy alone</span>
           </button>
-          {isSignedIn && (
-            <button type="button" className="home-aux-link" onClick={() => navigate("/stats")}>
-              📊 My Stats
-            </button>
-          )}
+
+          <button type="button" className="home-mode-card home-mode-card--featured" onClick={() => navigate("/online")}>
+            <span className="home-card-badge">LIVE</span>
+            <span className="home-card-icon">🌍</span>
+            <span className="home-card-title">Play Online</span>
+            <span className="home-card-desc">Match with a random opponent</span>
+          </button>
+
+          <button type="button" className="home-mode-card" onClick={() => navigate("/lobby")}>
+            <span className="home-card-icon">🏎️</span>
+            <span className="home-card-title">Play with Friends</span>
+            <span className="home-card-desc">Race others in custom rooms</span>
+          </button>
         </div>
+      ) : (
+        /* Not signed in — show all modes + guest option */
+        <div className="home-guest-section">
+          <div className="home-modes">
+            <SignInButton mode="modal">
+              <button type="button" className="home-mode-card">
+                <span className="home-card-icon">⚡</span>
+                <span className="home-card-title">Solo Practice</span>
+                <span className="home-card-desc">Train your speed &amp; accuracy alone</span>
+              </button>
+            </SignInButton>
+
+            <SignInButton mode="modal">
+              <button type="button" className="home-mode-card home-mode-card--featured">
+                <span className="home-card-badge">LIVE</span>
+                <span className="home-card-icon">🌍</span>
+                <span className="home-card-title">Play Online</span>
+                <span className="home-card-desc">Match with a random opponent</span>
+              </button>
+            </SignInButton>
+
+            <SignInButton mode="modal">
+              <button type="button" className="home-mode-card">
+                <span className="home-card-icon">🏎️</span>
+                <span className="home-card-title">Play with Friends</span>
+                <span className="home-card-desc">Race others in custom rooms</span>
+              </button>
+            </SignInButton>
+          </div>
+
+          <div className="home-divider">
+            <span>or</span>
+          </div>
+
+          <button
+            type="button"
+            className="home-guest-btn"
+            onClick={() => playAsGuest("/solo")}
+          >
+            ⚡ Play as Guest
+          </button>
+          <p className="home-guest-note">No account needed — guest stats won't be saved</p>
+        </div>
+      )}
+
+      {/* Aux links */}
+      <div className="home-aux">
+        <button type="button" className="home-aux-link" onClick={() => navigate("/leaderboard")}>
+          🏆 Leaderboard
+        </button>
+        {isSignedIn && (
+          <button type="button" className="home-aux-link" onClick={() => navigate("/stats")}>
+            📊 My Stats
+          </button>
+        )}
       </div>
     </main>
   );
