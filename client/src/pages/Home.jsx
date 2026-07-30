@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUser, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { getStoredUsername } from "../lib/userStats";
 import GuestUsernameModal from "../components/GuestUsernameModal";
+import TextType from "../components/TextType";
 
 /* The Flash chest lightning bolt — scarlet red circle with gold bolt */
 function FlashLogo({ size = 64 }) {
@@ -98,7 +99,26 @@ function Home() {
           <FlashLogo size={72} />
         </div>
         <h1 className="hm-title">FlashType</h1>
-        <p className="hm-subtitle">Real-time multiplayer typing battles</p>
+        
+        <div className="hm-subtitle-container">
+          <TextType 
+            text={[
+              "Real-time multiplayer typing battles",
+              "Outspeed your rivals at lightning pace",
+              "Enter the speed force of typing"
+            ]}
+            typingSpeed={50}
+            deletingSpeed={25}
+            pauseDuration={2200}
+            showCursor={true}
+            cursorCharacter="⚡"
+            cursorBlinkDuration={0.4}
+            className="hm-subtitle-text"
+            cursorClassName="hm-subtitle-cursor"
+            variableSpeed={{ min: 25, max: 75 }}
+          />
+        </div>
+
         {isSignedIn && (
           <div className="hm-hero-tag">
             <span className="hm-tag-dot" />

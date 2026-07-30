@@ -2428,12 +2428,28 @@ select {
   line-height: 1;
 }
 
-.hm-subtitle {
-  font-size: 14px;
-  color: #555;
-  margin: 0;
-  letter-spacing: 2px;
+.hm-subtitle-container {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px 0 4px;
+}
+
+.hm-subtitle-text {
+  font-size: 15px;
+  color: #a0a0a0;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+}
+
+.hm-subtitle-cursor {
+  font-size: 16px;
+  color: #FFD700;
+  margin-left: 4px;
+  filter: drop-shadow(0 0 8px #FFD700);
 }
 
 .hm-hero-tag {

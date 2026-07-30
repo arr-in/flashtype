@@ -1,0 +1,22 @@
+.text-type {
+  display: inline-block;
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.text-type__content {
+  font-family: inherit;
+}
+
+.text-type__cursor {
+  margin-left: 0.2rem;
+  display: inline-block;
+  opacity: 1;
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(204, 17, 17, 0.6);
+  vertical-align: middle;
+}
+
+.text-type__cursor--hidden {
+  display: none;
+}
