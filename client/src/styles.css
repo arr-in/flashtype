@@ -1,3 +1,17 @@
+/* ── BN Elements (DC Flash / comic book font) ── */
+/* Drop BNElements.woff2 (or .ttf/.otf) into client/public/fonts/ */
+@font-face {
+  font-family: "BN Elements";
+  src:
+    url("/fonts/BNElements.woff2") format("woff2"),
+    url("/fonts/BNElements.woff")  format("woff"),
+    url("/fonts/BNElements.ttf")   format("truetype"),
+    url("/fonts/BNElements.otf")   format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   font-family: "Courier New", Courier, monospace;
   color: #d1d1d1;
@@ -2407,10 +2421,11 @@ select {
 }
 
 .hm-title {
-  font-size: 64px;
-  font-weight: 900;
+  font-family: "BN Elements", "Courier New", monospace;
+  font-size: 72px;
+  font-weight: normal; /* BN Elements is already bold by design */
   margin: 0;
-  letter-spacing: -2px;
+  letter-spacing: 2px;
   background: linear-gradient(135deg, #ffffff 30%, #FFD700 70%, #CC1111 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2651,11 +2666,13 @@ select {
 }
 
 .guest-modal-title {
-  font-size: 26px;
-  font-weight: 900;
+  font-family: "BN Elements", "Courier New", monospace;
+  font-size: 30px;
+  font-weight: normal;
   color: #fff;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .guest-modal-sub {
