@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BubbleMenu from "./BubbleMenu";
+import ElectricBorder from "./ElectricBorder";
 
 function FlashLogo({ size = 32 }) {
   return (
@@ -114,19 +115,20 @@ export default function Navbar() {
           }}
           onClick={() => setShowContactModal(false)}
         >
-          <div 
-            style={{
-              background: "#1e1e2d",
-              border: "1px solid rgba(255, 215, 0, 0.3)",
-              borderRadius: "16px",
-              padding: "32px",
-              maxWidth: "480px",
-              width: "100%",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-              color: "#fff"
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <ElectricBorder color="#cc1111" speed={1} chaos={0.12} borderRadius={16}>
+            <div 
+              style={{
+                background: "#1e1e2d",
+                border: "1px solid rgba(255, 215, 0, 0.3)",
+                borderRadius: "16px",
+                padding: "32px",
+                maxWidth: "480px",
+                width: "100%",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+                color: "#fff"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h2 style={{ margin: 0, fontSize: "1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
                 <span>✉️</span> Contact Developers
@@ -204,8 +206,9 @@ export default function Navbar() {
               Close
             </button>
           </div>
-        </div>
-      )}
-    </>
-  );
+        </ElectricBorder>
+      </div>
+    )}
+  </>
+);
 }

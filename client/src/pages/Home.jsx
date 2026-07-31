@@ -4,6 +4,7 @@ import { useUser, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-re
 import { getStoredUsername } from "../lib/userStats";
 import GuestUsernameModal from "../components/GuestUsernameModal";
 import TextType from "../components/TextType";
+import ElectricBorder from "../components/ElectricBorder";
 
 /* The Flash chest lightning bolt — scarlet red circle with gold bolt */
 function FlashLogo({ size = 64 }) {
@@ -25,13 +26,14 @@ function FlashLogo({ size = 64 }) {
   );
 }
 
-function ModeCard({ icon, title, desc, featured, onClick }) {
+function ModeCard({ icon, title, desc, featured, badge, onClick }) {
   return (
     <button
       type="button"
       className={`hm-card${featured ? " hm-card--featured" : ""}`}
       onClick={onClick}
     >
+      {badge && <span className="hm-card-badge">{badge}</span>}
       <span className="hm-card-icon">{icon}</span>
       <span className="hm-card-title">{title}</span>
       <span className="hm-card-desc">{desc}</span>
@@ -130,47 +132,59 @@ function Home() {
       <div className="hm-modes">
         {isSignedIn ? (
           <>
-            <ModeCard
-              icon="⚡"
-              title="Solo Practice"
-              desc="Train your speed & accuracy alone"
-              onClick={() => navigate("/solo")}
-            />
-            <ModeCard
-              icon="🌍"
-              title="Play Online"
-              desc="Match with a random opponent"
-              featured
-              onClick={() => navigate("/online")}
-            />
-            <ModeCard
-              icon="🏎️"
-              title="Play with Friends"
-              desc="Race others in custom rooms"
-              onClick={() => navigate("/lobby")}
-            />
+            <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
+              <ModeCard
+                icon="⚡"
+                title="Solo Practice"
+                desc="Train your speed & accuracy alone"
+                onClick={() => navigate("/solo")}
+              />
+            </ElectricBorder>
+            <ElectricBorder color="#ffd700" speed={1.2} chaos={0.15} borderRadius={16}>
+              <ModeCard
+                icon="🌍"
+                title="Play Online"
+                desc="Match with a random opponent"
+                featured
+                onClick={() => navigate("/online")}
+              />
+            </ElectricBorder>
+            <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
+              <ModeCard
+                icon="🏎️"
+                title="Play with Friends"
+                desc="Race others in custom rooms"
+                onClick={() => navigate("/lobby")}
+              />
+            </ElectricBorder>
           </>
         ) : (
           <>
-            <ModeCard
-              icon="⚡"
-              title="Solo Practice"
-              desc="Train your speed & accuracy alone"
-              onClick={() => handleGuestModeClick("/solo")}
-            />
-            <ModeCard
-              icon="🌍"
-              title="Play Online"
-              desc="Match with a random opponent"
-              featured
-              onClick={() => handleGuestModeClick("/online")}
-            />
-            <ModeCard
-              icon="🏎️"
-              title="Play with Friends"
-              desc="Race others in custom rooms"
-              onClick={() => handleGuestModeClick("/lobby")}
-            />
+            <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
+              <ModeCard
+                icon="⚡"
+                title="Solo Practice"
+                desc="Train your speed & accuracy alone"
+                onClick={() => handleGuestModeClick("/solo")}
+              />
+            </ElectricBorder>
+            <ElectricBorder color="#ffd700" speed={1.2} chaos={0.15} borderRadius={16}>
+              <ModeCard
+                icon="🌍"
+                title="Play Online"
+                desc="Match with a random opponent"
+                featured
+                onClick={() => handleGuestModeClick("/online")}
+              />
+            </ElectricBorder>
+            <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
+              <ModeCard
+                icon="🏎️"
+                title="Play with Friends"
+                desc="Race others in custom rooms"
+                onClick={() => handleGuestModeClick("/lobby")}
+              />
+            </ElectricBorder>
           </>
         )}
       </div>
