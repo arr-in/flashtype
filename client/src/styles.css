@@ -2416,18 +2416,16 @@ select {
 }
 
 .hm-title {
-  font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 88px;
-  font-weight: 800;
+  font-family: "BN Elements", "Courier New", monospace;
+  font-size: 72px;
+  font-weight: normal; /* BN Elements is already bold by design */
   margin: 0;
-  letter-spacing: -3px;
-  background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ffffff 30%, #FFD700 70%, #CC1111 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.1;
-  text-align: center;
-  filter: drop-shadow(0 4px 24px rgba(255, 255, 255, 0.1));
+  line-height: 1;
 }
 
 .hm-subtitle-container {
