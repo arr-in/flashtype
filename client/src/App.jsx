@@ -9,6 +9,7 @@ import Online from "./pages/Online";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
 import Navbar from "./components/Navbar";
+import ElectricBorder from "./components/ElectricBorder";
 
 function App() {
   return (
@@ -30,7 +31,9 @@ function App() {
           path="/sign-in/*"
           element={
             <div className="clerk-auth-page">
-              <SignIn routing="path" path="/sign-in" fallbackRedirectUrl="/" />
+              <ElectricBorder color="#cc1111" speed={1} chaos={0.12} borderRadius={24}>
+                <SignIn routing="path" path="/sign-in" fallbackRedirectUrl="/" />
+              </ElectricBorder>
             </div>
           }
         />
@@ -38,7 +41,9 @@ function App() {
           path="/sign-up/*"
           element={
             <div className="clerk-auth-page">
-              <SignUp routing="path" path="/sign-up" fallbackRedirectUrl="/" />
+              <ElectricBorder color="#cc1111" speed={1} chaos={0.12} borderRadius={24}>
+                <SignUp routing="path" path="/sign-up" fallbackRedirectUrl="/" />
+              </ElectricBorder>
             </div>
           }
         />
