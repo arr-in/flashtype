@@ -25,14 +25,13 @@ function FlashLogo({ size = 64 }) {
   );
 }
 
-function ModeCard({ icon, title, desc, featured, badge, onClick }) {
+function ModeCard({ icon, title, desc, featured, onClick }) {
   return (
     <button
       type="button"
       className={`hm-card${featured ? " hm-card--featured" : ""}`}
       onClick={onClick}
     >
-      {badge && <span className="hm-card-badge">{badge}</span>}
       <span className="hm-card-icon">{icon}</span>
       <span className="hm-card-title">{title}</span>
       <span className="hm-card-desc">{desc}</span>
@@ -142,7 +141,6 @@ function Home() {
               title="Play Online"
               desc="Match with a random opponent"
               featured
-              badge="LIVE"
               onClick={() => navigate("/online")}
             />
             <ModeCard
@@ -165,7 +163,6 @@ function Home() {
               title="Play Online"
               desc="Match with a random opponent"
               featured
-              badge="LIVE"
               onClick={() => handleGuestModeClick("/online")}
             />
             <ModeCard
