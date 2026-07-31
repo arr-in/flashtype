@@ -193,6 +193,7 @@ const ElectricBorder = ({
       ctx.scale(dpr, dpr);
 
       ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.7;
       ctx.lineWidth = 1;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
