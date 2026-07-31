@@ -23,52 +23,52 @@ export default function Navbar() {
 
   const items = [
     {
-      label: "Home 🏠",
-      ariaLabel: "Home Page",
-      rotation: -6,
-      hoverStyles: { bgColor: "#cc1111", textColor: "#ffffff" },
+      label: "home",
+      ariaLabel: "Home",
+      rotation: -8,
+      hoverStyles: { bgColor: "#3b82f6", textColor: "#ffffff" },
       onClick: () => navigate("/")
     },
     {
-      label: "Leaderboard 🏆",
+      label: "leaderboard",
       ariaLabel: "Leaderboard",
-      rotation: 6,
-      hoverStyles: { bgColor: "#ffd700", textColor: "#111111" },
+      rotation: 8,
+      hoverStyles: { bgColor: "#10b981", textColor: "#ffffff" },
       onClick: () => navigate("/leaderboard")
     },
     {
-      label: "Contact Developers ✉️",
+      label: "contact",
       ariaLabel: "Contact Developers",
-      rotation: -4,
+      rotation: -8,
       hoverStyles: { bgColor: "#8b5cf6", textColor: "#ffffff" },
       onClick: () => setShowContactModal(true)
     },
     {
-      label: "Solo Practice ⚡",
+      label: "solo practice",
       ariaLabel: "Solo Practice",
-      rotation: 6,
-      hoverStyles: { bgColor: "#3b82f6", textColor: "#ffffff" },
+      rotation: 8,
+      hoverStyles: { bgColor: "#f59e0b", textColor: "#ffffff" },
       onClick: () => navigate("/solo")
     },
     {
-      label: "Play Online 🌍",
+      label: "play online",
       ariaLabel: "Play Online",
-      rotation: -6,
-      hoverStyles: { bgColor: "#10b981", textColor: "#ffffff" },
+      rotation: -8,
+      hoverStyles: { bgColor: "#ef4444", textColor: "#ffffff" },
       onClick: () => navigate("/online")
     },
     {
-      label: "Custom Rooms 🏎️",
-      ariaLabel: "Custom Rooms Lobby",
-      rotation: 6,
-      hoverStyles: { bgColor: "#f59e0b", textColor: "#ffffff" },
+      label: "custom rooms",
+      ariaLabel: "Custom Rooms",
+      rotation: 8,
+      hoverStyles: { bgColor: "#3b82f6", textColor: "#ffffff" },
       onClick: () => navigate("/lobby")
     },
     {
-      label: "My Stats 📊",
+      label: "my stats",
       ariaLabel: "My Stats",
-      rotation: -4,
-      hoverStyles: { bgColor: "#ec4899", textColor: "#ffffff" },
+      rotation: -8,
+      hoverStyles: { bgColor: "#10b981", textColor: "#ffffff" },
       onClick: () => navigate("/stats")
     }
   ];
@@ -82,19 +82,19 @@ export default function Navbar() {
             onClick={() => navigate("/")}
           >
             <FlashLogo size={28} />
-            <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#fff", letterSpacing: "0.5px" }}>
+            <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#111111", letterSpacing: "0.5px" }}>
               FlashType
             </span>
           </div>
         }
         items={items}
-        menuAriaLabel="Toggle FlashType navigation menu"
-        menuBg="#181824"
-        menuContentColor="#ffffff"
+        menuAriaLabel="Toggle navigation"
+        menuBg="#ffffff"
+        menuContentColor="#111111"
         useFixedPosition={true}
         animationEase="back.out(1.5)"
-        animationDuration={0.4}
-        staggerDelay={0.08}
+        animationDuration={0.5}
+        staggerDelay={0.12}
       />
 
       {/* Contact Developers Modal */}
