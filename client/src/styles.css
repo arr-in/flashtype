@@ -2437,19 +2437,18 @@ select {
 }
 
 .hm-subtitle-text {
-  font-size: 15px;
-  color: #a0a0a0;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-weight: 600;
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.5px;
+  font-weight: 400;
+  text-transform: none;
 }
 
 .hm-subtitle-cursor {
-  font-size: 16px;
-  color: #FFD700;
-  margin-left: 4px;
-  filter: drop-shadow(0 0 8px #FFD700);
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 2px;
+  font-weight: 300;
 }
 
 .hm-hero-tag {

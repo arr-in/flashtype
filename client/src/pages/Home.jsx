@@ -103,19 +103,19 @@ function Home() {
         <div className="hm-subtitle-container">
           <TextType 
             text={[
-              "Real-time multiplayer typing battles",
-              "Outspeed your rivals at lightning pace",
-              "Enter the speed force of typing"
+              "Real-time multiplayer typing platform",
+              "Test your speed and accuracy",
+              "Compete with players worldwide"
             ]}
-            typingSpeed={50}
-            deletingSpeed={25}
-            pauseDuration={2200}
+            typingSpeed={40}
+            deletingSpeed={20}
+            pauseDuration={3000}
             showCursor={true}
-            cursorCharacter="⚡"
-            cursorBlinkDuration={0.4}
+            cursorCharacter="|"
+            cursorBlinkDuration={0.5}
             className="hm-subtitle-text"
             cursorClassName="hm-subtitle-cursor"
-            variableSpeed={{ min: 25, max: 75 }}
+            variableSpeed={{ min: 30, max: 60 }}
           />
         </div>
 
