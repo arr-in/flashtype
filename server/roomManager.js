@@ -177,22 +177,29 @@ function buildResults(roomCode) {
   return [...room.players]
     .map((player) => ({ ...player, score: calculateScore(player) }))
     .sort((a, b) => {
-      // 1. Finished (non-DQ) always beats DQ
+      // 1. Non-disqualified always beats disqualified
       if (a.disqualified !== b.disqualified) return a.disqualified ? 1 : -1;
-      
-      // 2. If both finished correctly, faster time wins
-      if (!a.disqualified && a.finished && b.finished) {
-        return (a.finishTime || roomDurationMs) - (b.finishTime || roomDurationMs);
-      }
-      
-      // 3. If both disqualified, later DQ (survived longer) or higher score/progress
+
+      // 2. Both disqualified: sort by survival time or score
       if (a.disqualified && b.disqualified) {
         if (a.finishTime !== b.finishTime) return (b.finishTime || 0) - (a.finishTime || 0);
         return b.score - a.score;
       }
 
+      // 3. If both completed early with different finish times, faster completion time wins
+      const aTime = a.finishTime || roomDurationMs;
+      const bTime = b.finishTime || roomDurationMs;
+      if (a.finished && b.finished && aTime !== bTime) {
+        return aTime - bTime;
+      }
+
+      // 4. Primary ranking tiebreaker for equal finish time or ongoing race: HIGHER SCORE WINS!
       if (b.score !== a.score) return b.score - a.score;
-      return b.progress - a.progress;
+
+      // 5. Secondary tiebreakers: WPM, Accuracy, Progress
+      if (b.wpm !== a.wpm) return b.wpm - a.wpm;
+      if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
+      return (b.progress || 0) - (a.progress || 0);
     })
     .map((p, idx) => ({
       username: p.username,

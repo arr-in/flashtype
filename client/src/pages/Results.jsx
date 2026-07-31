@@ -131,6 +131,16 @@ function Results() {
 
   const allReady = allPlayers.length > 0 && allPlayers.every((p) => readyPlayers.includes(p));
 
+  const sortedResults = useMemo(() => {
+    return [...results].sort((a, b) => {
+      if (a.placement && b.placement && a.placement !== b.placement) {
+        return a.placement - b.placement;
+      }
+      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+      return (b.wpm || 0) - (a.wpm || 0);
+    });
+  }, [results]);
+
   return (
     <main className="page">
       <h2>Results</h2>
@@ -138,45 +148,34 @@ function Results() {
       {mode === "solo" && results[0] && (
         <div className="solo-stats-hero">
           <div className="solo-stat-card">
-            <span className="solo-stat-value">{results[0].wpm}</span>
-            <span className="solo-stat-label">WPM</span>
+            <span className="solo-stat-val">{Math.round(results[0].wpm)}</span>
+            <span className="solo-stat-lbl">WPM</span>
           </div>
           <div className="solo-stat-card">
-            <span className="solo-stat-value">{results[0].accuracy}%</span>
-            <span className="solo-stat-label">Accuracy</span>
+            <span className="solo-stat-val">{Math.round(results[0].accuracy)}%</span>
+            <span className="solo-stat-lbl">Accuracy</span>
           </div>
-          <div className="solo-stat-card">
-            <span className="solo-stat-value">{(results[0].timeMs / 1000).toFixed(1)}s</span>
-            <span className="solo-stat-label">Time</span>
-          </div>
+          {soloMeta && (
+            <div className="solo-stat-card solo-stat-pb">
+              <span className="solo-stat-val">{soloMeta.personalBest} WPM</span>
+              <span className="solo-stat-lbl">Personal Best ({soloMeta.difficulty}, {soloMeta.timeLimit}s)</span>
+            </div>
+          )}
         </div>
       )}
 
-      {soloMeta && (
-        <div className="panel solo-meta-row">
-          <span>Difficulty: {soloMeta.difficulty}</span>
-          <span>Timer: {soloMeta.timeLimit}s</span>
-          <span>Personal Best: {soloMeta.personalBest} WPM</span>
-        </div>
-      )}
-
+      {/* Heatmap Section for Solo Mode */}
       {mode === "solo" && soloTelemetry && (
         <section className="panel">
-          <h3>Solo Stats</h3>
-          <p>Backspace usage: {soloTelemetry.backspaceCount}</p>
-          <h4>Keyboard Error/Speed Heatmap</h4>
-          {soloTelemetry.keyMetrics && Object.keys(soloTelemetry.keyMetrics).length > 0 ? (
-            <KeyboardHeatmap keyMetrics={soloTelemetry.keyMetrics} />
-          ) : (
-            <p style={{ color: "#888", fontStyle: "italic" }}>No key data recorded for this run.</p>
-          )}
-          <h4>Hard Word List</h4>
-          {(soloTelemetry.hardWords || []).length > 0 ? (
-            <div className="hard-word-list">
+          <h3>Keyboard Error Heatmap</h3>
+          <KeyboardHeatmap errorMap={soloTelemetry.errorMap || {}} />
+
+          <h3 style={{ marginTop: 24 }}>Slowest Words</h3>
+          {soloTelemetry.hardWords && soloTelemetry.hardWords.length > 0 ? (
+            <div className="hard-words-list">
               {soloTelemetry.hardWords.map((item) => (
-                <div key={`${item.word}-${item.errors}-${item.avgDelay}`} className="hard-word-item">
-                  <span className="hard-word-name">{item.word}</span>
-                  <span className="hard-word-errors">{item.errors} error{item.errors !== 1 ? "s" : ""}</span>
+                <div key={item.word} className="hard-word-chip">
+                  <span className="hard-word-text">{item.word}</span>
                   <span className="hard-word-delay">{item.avgDelay} ms avg</span>
                 </div>
               ))}
@@ -189,7 +188,7 @@ function Results() {
 
       {mode === "multiplayer" && (
         <section className="results-grid">
-          {results.map((player) => (
+          {sortedResults.map((player) => (
             <PlayerCard key={player.username} player={player} highlighted={player.username === currentUser} />
           ))}
         </section>
