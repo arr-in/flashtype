@@ -8,40 +8,44 @@ import Results from "./pages/Results";
 import Online from "./pages/Online";
 import Leaderboard from "./pages/Leaderboard";
 import Stats from "./pages/Stats";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
-    <Routes>
-      {/* Public routes — all accessible to guests & signed-in users */}
-      <Route path="/"           element={<Home />} />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-      <Route path="/solo"       element={<Solo />} />
-      <Route path="/lobby"      element={<Lobby />} />
-      <Route path="/online"     element={<Online />} />
-      <Route path="/race"       element={<Race />} />
-      <Route path="/results"    element={<Results />} />
-      <Route path="/stats"      element={<Stats />} />
+    <>
+      <Navbar />
+      <Routes>
+        {/* Public routes — all accessible to guests & signed-in users */}
+        <Route path="/"           element={<Home />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/solo"       element={<Solo />} />
+        <Route path="/lobby"      element={<Lobby />} />
+        <Route path="/online"     element={<Online />} />
+        <Route path="/race"       element={<Race />} />
+        <Route path="/results"    element={<Results />} />
+        <Route path="/stats"      element={<Stats />} />
 
-      {/* Clerk auth routes */}
-      <Route
-        path="/sign-in/*"
-        element={
-          <div className="clerk-auth-page">
-            <SignIn routing="path" path="/sign-in" fallbackRedirectUrl="/" />
-          </div>
-        }
-      />
-      <Route
-        path="/sign-up/*"
-        element={
-          <div className="clerk-auth-page">
-            <SignUp routing="path" path="/sign-up" fallbackRedirectUrl="/" />
-          </div>
-        }
-      />
+        {/* Clerk auth routes */}
+        <Route
+          path="/sign-in/*"
+          element={
+            <div className="clerk-auth-page">
+              <SignIn routing="path" path="/sign-in" fallbackRedirectUrl="/" />
+            </div>
+          }
+        />
+        <Route
+          path="/sign-up/*"
+          element={
+            <div className="clerk-auth-page">
+              <SignUp routing="path" path="/sign-up" fallbackRedirectUrl="/" />
+            </div>
+          }
+        />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
