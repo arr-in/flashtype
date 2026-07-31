@@ -26,7 +26,7 @@ function FlashLogo({ size = 64 }) {
   );
 }
 
-function ModeCard({ icon, title, desc, featured, badge, onClick }) {
+function ModeCard({ title, desc, featured, badge, onClick }) {
   return (
     <button
       type="button"
@@ -34,7 +34,6 @@ function ModeCard({ icon, title, desc, featured, badge, onClick }) {
       onClick={onClick}
     >
       {badge && <span className="hm-card-badge">{badge}</span>}
-      <span className="hm-card-icon">{icon}</span>
       <span className="hm-card-title">{title}</span>
       <span className="hm-card-desc">{desc}</span>
     </button>
@@ -134,7 +133,6 @@ function Home() {
           <>
             <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
               <ModeCard
-                icon="⚡"
                 title="Solo Practice"
                 desc="Train your speed & accuracy alone"
                 onClick={() => navigate("/solo")}
@@ -142,7 +140,6 @@ function Home() {
             </ElectricBorder>
             <ElectricBorder color="#ffd700" speed={1.2} chaos={0.15} borderRadius={16}>
               <ModeCard
-                icon="🌍"
                 title="Play Online"
                 desc="Match with a random opponent"
                 featured
@@ -151,7 +148,6 @@ function Home() {
             </ElectricBorder>
             <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
               <ModeCard
-                icon="🏎️"
                 title="Play with Friends"
                 desc="Race others in custom rooms"
                 onClick={() => navigate("/lobby")}
@@ -162,7 +158,6 @@ function Home() {
           <>
             <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
               <ModeCard
-                icon="⚡"
                 title="Solo Practice"
                 desc="Train your speed & accuracy alone"
                 onClick={() => handleGuestModeClick("/solo")}
@@ -170,7 +165,6 @@ function Home() {
             </ElectricBorder>
             <ElectricBorder color="#ffd700" speed={1.2} chaos={0.15} borderRadius={16}>
               <ModeCard
-                icon="🌍"
                 title="Play Online"
                 desc="Match with a random opponent"
                 featured
@@ -179,7 +173,6 @@ function Home() {
             </ElectricBorder>
             <ElectricBorder color="#ffd700" speed={1} chaos={0.12} borderRadius={16}>
               <ModeCard
-                icon="🏎️"
                 title="Play with Friends"
                 desc="Race others in custom rooms"
                 onClick={() => handleGuestModeClick("/lobby")}
