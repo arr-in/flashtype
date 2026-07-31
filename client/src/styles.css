@@ -2546,16 +2546,16 @@ select {
 .hm-card:hover::before { left: 160%; }
 
 .hm-card:hover {
-  border-color: rgba(204,17,17,0.6);
-  background: rgba(204,17,17,0.06);
+  border-color: #FFD700;
+  background: rgba(255,215,0,0.06);
   transform: translateY(-5px);
-  box-shadow: 0 16px 40px rgba(204,17,17,0.18), 0 0 0 1px rgba(204,17,17,0.15);
+  box-shadow: 0 16px 48px rgba(255,215,0,0.18), 0 0 0 1px rgba(255,215,0,0.3);
 }
 
 .hm-card--featured {
   border-color: rgba(255,215,0,0.25);
   background: rgba(255,215,0,0.03);
-  box-shadow: 0 0 0 1px rgba(255,215,0,0.1), 0 8px 24px rgba(204,17,17,0.1);
+  box-shadow: 0 0 0 1px rgba(255,215,0,0.1), 0 8px 24px rgba(255,215,0,0.1);
 }
 .hm-card--featured:hover {
   border-color: #FFD700;
