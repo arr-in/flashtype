@@ -131,14 +131,14 @@ function Home() {
       <div className="hm-modes">
         {isSignedIn ? (
           <>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Solo Practice"
                 desc="Train your speed & accuracy alone"
                 onClick={() => navigate("/solo")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Play Online"
                 desc="Match with a random opponent"
@@ -146,7 +146,7 @@ function Home() {
                 onClick={() => navigate("/online")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Play with Friends"
                 desc="Race others in custom rooms"
@@ -156,14 +156,14 @@ function Home() {
           </>
         ) : (
           <>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Solo Practice"
                 desc="Train your speed & accuracy alone"
                 onClick={() => handleGuestModeClick("/solo")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Play Online"
                 desc="Match with a random opponent"
@@ -171,7 +171,7 @@ function Home() {
                 onClick={() => handleGuestModeClick("/online")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16}>
+            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
               <ModeCard
                 title="Play with Friends"
                 desc="Race others in custom rooms"

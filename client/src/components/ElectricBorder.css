@@ -63,3 +63,17 @@
   opacity: 0.12;
   background: linear-gradient(-30deg, var(--electric-light-color), transparent, var(--electric-border-color));
 }
+
+/* Hover-only mode: lightning fades in on hover */
+.electric-border.hover-only .eb-canvas-container,
+.electric-border.hover-only .eb-layers {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.electric-border.hover-only:hover .eb-canvas-container,
+.electric-border.hover-only:hover .eb-layers,
+.electric-border.hover-only.is-hovered .eb-canvas-container,
+.electric-border.hover-only.is-hovered .eb-layers {
+  opacity: 1;
+}

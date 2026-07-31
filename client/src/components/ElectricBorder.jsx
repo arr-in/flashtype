@@ -7,6 +7,7 @@ const ElectricBorder = ({
   speed = 1,
   chaos = 0.12,
   borderRadius = 24,
+  hoverOnly = false,
   className,
   style
 }) => {
@@ -281,7 +282,11 @@ const ElectricBorder = ({
   };
 
   return (
-    <div ref={containerRef} className={`electric-border ${className ?? ''}`} style={{ ...vars, ...style }}>
+    <div
+      ref={containerRef}
+      className={`electric-border ${hoverOnly ? 'hover-only' : ''} ${className ?? ''}`}
+      style={{ ...vars, ...style }}
+    >
       <div className="eb-canvas-container">
         <canvas ref={canvasRef} className="eb-canvas" />
       </div>
