@@ -4,6 +4,7 @@ import { fetchSoloLeaderboard, fetchMultiLeaderboard } from "../lib/api";
 import { getUserStats, getStoredUsername } from "../lib/userStats";
 import { socket } from "../socket";
 import { useUser } from "@clerk/clerk-react";
+import FlashRunnerHero from "../components/FlashRunnerHero";
 
 const DIFFICULTIES = ["all", "beginner", "easy", "medium", "hard", "expert"];
 
@@ -143,8 +144,10 @@ export default function Leaderboard() {
       )}
 
       <div className="lb-header">
-        <button type="button" className="solo-back-btn" onClick={() => navigate("/")}>← Back</button>
-        <h1 className="lb-title">Leaderboard</h1>
+        <div className="lb-header-top">
+          <h1 className="lb-title">Leaderboard</h1>
+          <FlashRunnerHero variant="compact" />
+        </div>
         <div className="lb-live-row">
           <span className="lb-live-dot" aria-hidden="true" />
           <span className="lb-live-label">Live</span>

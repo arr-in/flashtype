@@ -1,0 +1,148 @@
+/* ── Hero running animation ── */
+.ft-runner-hero {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ft-runner-hero-track {
+  position: relative;
+  height: 56px;
+  border-radius: 100px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.ft-runner-hero-lane {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* Speed streaks behind runner */
+.ft-runner-hero-streaks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ft-runner-hero-streak {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.35), transparent);
+  animation: ftHeroStreak 1.8s ease-in-out infinite;
+}
+
+.ft-runner-hero-streak--0 { width: 40%; left: -20%; animation-delay: 0s; opacity: 0.5; }
+.ft-runner-hero-streak--1 { width: 55%; left: -30%; animation-delay: 0.3s; }
+.ft-runner-hero-streak--2 { width: 35%; left: -15%; animation-delay: 0.6s; opacity: 0.4; }
+.ft-runner-hero-streak--3 { width: 50%; left: -25%; animation-delay: 0.9s; }
+.ft-runner-hero-streak--4 { width: 45%; left: -20%; animation-delay: 1.2s; opacity: 0.6; }
+.ft-runner-hero-streak--5 { width: 60%; left: -35%; animation-delay: 1.5s; }
+
+@keyframes ftHeroStreak {
+  0%   { transform: translateY(-50%) translateX(0); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { transform: translateY(-50%) translateX(180%); opacity: 0; }
+}
+
+/* Runner loop across track */
+.ft-runner-hero-runner-wrap {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  animation: ftHeroRun 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 12px rgba(204, 17, 17, 0.5));
+}
+
+@keyframes ftHeroRun {
+  0%   { left: -8%;  opacity: 0; }
+  8%   { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 92%;  opacity: 0; }
+}
+
+/* Finish line marker */
+.ft-runner-hero-finish {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0.35;
+}
+
+.ft-runner-hero-finish-flag {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 215, 0, 0.6) 0px,
+    rgba(255, 215, 0, 0.6) 4px,
+    rgba(204, 17, 17, 0.4) 4px,
+    rgba(204, 17, 17, 0.4) 8px
+  );
+  border-radius: 1px;
+}
+
+/* Compact variant for leaderboard header */
+.ft-runner-hero--compact {
+  max-width: 280px;
+  margin: 0;
+}
+
+.ft-runner-hero--compact .ft-runner-hero-track {
+  height: 44px;
+}
+
+.ft-runner-hero--compact .ft-runner-hero-runner-wrap {
+  animation-duration: 3.2s;
+}
+
+.ft-runner-hero--compact .ft-runner-hero-runner-wrap .speedster-runner svg {
+  width: 32px;
+  height: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-runner-hero-streak,
+  .ft-runner-hero-runner-wrap {
+    animation: none;
+  }
+
+  .ft-runner-hero-runner-wrap {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 640px) {
+  .ft-runner-hero {
+    max-width: 100%;
+  }
+
+  .ft-runner-hero-track {
+    height: 48px;
+  }
+}

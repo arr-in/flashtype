@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { useUser, SignInButton } from "@clerk/clerk-react";
 import { getStoredUsername } from "../lib/userStats";
 import GuestUsernameModal from "../components/GuestUsernameModal";
 import TextType from "../components/TextType";
 import ElectricBorder from "../components/ElectricBorder";
+import FlashRunnerHero from "../components/FlashRunnerHero";
 
 /* The Flash chest lightning bolt — scarlet red circle with gold bolt */
 function FlashLogo({ size = 64 }) {
@@ -42,7 +43,7 @@ function ModeCard({ title, desc, featured, badge, onClick }) {
 
 function Home() {
   const navigate = useNavigate();
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isSignedIn, user } = useUser();
   const [guestTarget, setGuestTarget] = useState(null); // path waiting for username
 
   const username = getStoredUsername(isSignedIn ? user : null);
@@ -72,25 +73,6 @@ function Home() {
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className={`hm-speed-line hm-speed-line--${i}`} />
         ))}
-      </div>
-
-      {/* Top bar */}
-      <div className="hm-topbar">
-        {!isLoaded ? null : isSignedIn ? (
-          <div className="hm-user-pill">
-            <UserButton afterSignOutUrl="/" />
-            <span className="hm-user-name">{username}</span>
-          </div>
-        ) : (
-          <div className="hm-auth-btns">
-            <SignInButton mode="modal">
-              <button type="button" className="hm-btn-ghost">Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button type="button" className="hm-btn-primary">Sign Up</button>
-            </SignUpButton>
-          </div>
-        )}
       </div>
 
       {/* Hero */}
@@ -125,6 +107,8 @@ function Home() {
             Signed in as <strong>{username}</strong> — scores saved to leaderboard
           </div>
         )}
+
+        <FlashRunnerHero />
       </div>
 
       {/* Mode cards */}
@@ -192,17 +176,13 @@ function Home() {
         </p>
       )}
 
-      {/* Aux links */}
-      <div className="hm-aux">
-        <button type="button" className="hm-aux-link" onClick={() => navigate("/leaderboard")}>
-          🏆 Leaderboard
-        </button>
-        {isSignedIn && (
+      {isSignedIn && (
+        <div className="hm-aux">
           <button type="button" className="hm-aux-link" onClick={() => navigate("/stats")}>
             📊 My Stats
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Guest username modal */}
       {guestTarget && (

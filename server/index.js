@@ -11,6 +11,7 @@ const { setupSocketRedisAdapter } = require("./redis");
 
 const PORT = process.env.PORT || 3001;
 const rawClientUrls = process.env.CLIENT_URL || "http://localhost:5173";
+const clerkEnabled = Boolean(process.env.CLERK_SECRET_KEY);
 
 function normalizeOrigin(value) {
   return String(value || "").trim().replace(/\/+$/, "");
@@ -21,9 +22,9 @@ const allowedOrigins = rawClientUrls
   .map((url) => normalizeOrigin(url))
   .filter(Boolean);
 
-if (!allowedOrigins.includes("http://localhost:5173")) {
-  allowedOrigins.push("http://localhost:5173");
-}
+["http://localhost:5173", "http://localhost:5174"].forEach((origin) => {
+  if (!allowedOrigins.includes(origin)) allowedOrigins.push(origin);
+});
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
@@ -42,10 +43,17 @@ app.use(
 );
 app.use(express.json());
 
-// ── Clerk middleware — attaches req.auth to every request ─────────────────────
-// clerkMiddleware() is permissive: it doesn't block unauthenticated requests,
-// it just enriches req. Use requireAuth() on specific routes to enforce auth.
-app.use(clerkMiddleware());
+// ── Clerk middleware — optional for local dev without API keys ────────────────
+if (clerkEnabled) {
+  app.use(clerkMiddleware());
+} else {
+  console.warn("[server] CLERK_SECRET_KEY not set — auth middleware disabled (local dev mode).");
+}
+
+function requireAuthOrDev() {
+  if (clerkEnabled) return requireAuth();
+  return (_req, _res, next) => next();
+}
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
@@ -53,8 +61,8 @@ app.get("/health", (_req, res) => {
 
 // ── Leaderboard REST API ──────────────────────────────────────────────────────
 
-// POST solo score — requires auth (Clerk JWT)
-app.post("/api/leaderboard/solo", requireAuth(), async (req, res) => {
+// POST solo score — requires auth when Clerk is configured
+app.post("/api/leaderboard/solo", requireAuthOrDev(), async (req, res) => {
   const { username, wpm, accuracy, difficulty } = req.body || {};
   if (!username || wpm == null) {
     return res.status(400).json({ error: "username and wpm required" });
@@ -66,8 +74,8 @@ app.post("/api/leaderboard/solo", requireAuth(), async (req, res) => {
   res.json({ leaderboard: updated });
 });
 
-// POST multi score — requires auth (Clerk JWT)
-app.post("/api/leaderboard/multi", requireAuth(), async (req, res) => {
+// POST multi score — requires auth when Clerk is configured
+app.post("/api/leaderboard/multi", requireAuthOrDev(), async (req, res) => {
   const { username, wpm, accuracy } = req.body || {};
   if (!username || wpm == null) {
     return res.status(400).json({ error: "username and wpm required" });
@@ -109,7 +117,7 @@ setupSocketRedisAdapter(io);
 server.listen(PORT, () => {
   console.log(`FlashType server running on port ${PORT}`);
   console.log(`Allowed client origins: ${allowedOrigins.join(", ")}`);
-  console.log(`Clerk auth: ${process.env.CLERK_SECRET_KEY  ? "✓ configured" : "✗ CLERK_SECRET_KEY not set"}`);
+  console.log(`Clerk auth: ${clerkEnabled ? "✓ configured" : "✗ disabled (local dev mode)"}`);
   console.log(`Supabase:   ${process.env.SUPABASE_URL       ? "✓ configured" : "✗ SUPABASE_URL not set"}`);
   console.log(`Redis:      ${process.env.REDIS_URL           ? "✓ " + process.env.REDIS_URL : "✗ REDIS_URL not set (single-node mode)"}`);
 });

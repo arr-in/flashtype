@@ -15,6 +15,7 @@ function App() {
   return (
     <>
       <Navbar />
+      <div className="ft-page-offset">
       <Routes>
         {/* Public routes — all accessible to guests & signed-in users */}
         <Route path="/"           element={<Home />} />
@@ -50,6 +51,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </div>
     </>
   );
 }
