@@ -151,7 +151,7 @@ export default function Navbar() {
             
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
               <a 
-                href="mailto:contact@flashtype.dev" 
+                href="mailto:arin.vdj@gmail.com" 
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -164,7 +164,23 @@ export default function Navbar() {
                   fontWeight: 600
                 }}
               >
-                📧 Email: contact@flashtype.dev
+                📧 Email: arin.vdj@gmail.com
+              </a>
+              <a 
+                href="mailto:neelanshdosi@gmail.com" 
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "12px 16px",
+                  borderRadius: "10px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  color: "#ffd700",
+                  textDecoration: "none",
+                  fontWeight: 600
+                }}
+              >
+                📧 Email: neelanshdosi@gmail.com
               </a>
               <a 
                 href="https://github.com/arr-in/flashtype" 
