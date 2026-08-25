@@ -7,8 +7,8 @@ import TextType from "../components/TextType";
 import ElectricBorder from "../components/ElectricBorder";
 import FlashRunnerHero from "../components/FlashRunnerHero";
 
-/* The Flash chest lightning bolt — scarlet red circle with gold bolt */
-function FlashLogo({ size = 64 }) {
+/* The Flash chest lightning bolt emblem with kinetic glowing ring */
+function FlashLogo({ size = 76 }) {
   return (
     <svg
       width={size}
@@ -18,7 +18,8 @@ function FlashLogo({ size = 64 }) {
       className="flash-logo-svg"
       aria-label="Flash logo"
     >
-      <circle cx="40" cy="40" r="38" fill="#CC1111" stroke="#FFD700" strokeWidth="3" />
+      <circle cx="40" cy="40" r="38" fill="#E50914" stroke="#FFD700" strokeWidth="3.5" />
+      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255, 215, 0, 0.4)" strokeWidth="1" strokeDasharray="4 4" />
       <polygon
         points="48,8 22,44 36,44 32,72 58,34 44,34"
         fill="#FFD700"
@@ -27,16 +28,22 @@ function FlashLogo({ size = 64 }) {
   );
 }
 
-function ModeCard({ title, desc, featured, badge, onClick }) {
+function ModeCard({ title, desc, icon, featured, badge, onClick }) {
   return (
     <button
       type="button"
       className={`hm-card${featured ? " hm-card--featured" : ""}`}
       onClick={onClick}
     >
-      {badge && <span className="hm-card-badge">{badge}</span>}
-      <span className="hm-card-title">{title}</span>
-      <span className="hm-card-desc">{desc}</span>
+      <div className="hm-card-header-row">
+        <div className="hm-card-icon-wrap">{icon}</div>
+        {badge && <span className="hm-card-badge">{badge}</span>}
+      </div>
+      <div className="hm-card-body">
+        <span className="hm-card-title">{title}</span>
+        <span className="hm-card-desc">{desc}</span>
+        <span className="hm-card-arrow">Launch Track →</span>
+      </div>
     </button>
   );
 }
@@ -68,97 +75,105 @@ function Home() {
 
   return (
     <main className="hm-page">
-      {/* Speed lines background */}
+      {/* Kinetic Speed lines background */}
       <div className="hm-speed-lines" aria-hidden="true">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className={`hm-speed-line hm-speed-line--${i}`} />
         ))}
       </div>
 
-      {/* Hero */}
+      {/* Hero Header */}
       <div className="hm-hero">
-        <div className="hm-hero-logo">
-          <FlashLogo size={72} />
+        <div className="hm-hero-logo" onClick={() => navigate("/solo")} title="Start Speed Typing">
+          <FlashLogo size={84} />
         </div>
         <h1 className="hm-title">FlashType</h1>
-        
+
         <div className="hm-subtitle-container">
-          <TextType 
+          <TextType
             text={[
-              "Real-time multiplayer typing platform",
-              "Test your speed and accuracy",
-              "Compete with players worldwide"
+              "Real-time multiplayer speed typing arena",
+              "Sub-millisecond WPM & accuracy telemetry",
+              "Race against competitive typists worldwide"
             ]}
-            typingSpeed={40}
-            deletingSpeed={20}
-            pauseDuration={3000}
+            typingSpeed={38}
+            deletingSpeed={18}
+            pauseDuration={2800}
             showCursor={true}
-            cursorCharacter="|"
+            cursorCharacter="│"
             cursorBlinkDuration={0.5}
             className="hm-subtitle-text"
             cursorClassName="hm-subtitle-cursor"
-            variableSpeed={{ min: 30, max: 60 }}
+            variableSpeed={{ min: 30, max: 55 }}
           />
         </div>
 
         {isSignedIn && (
           <div className="hm-hero-tag">
             <span className="hm-tag-dot" />
-            Signed in as <strong>{username}</strong> — scores saved to leaderboard
+            Signed in as <strong>{username}</strong> — scores recorded on global leaderboard
           </div>
         )}
 
         <FlashRunnerHero />
       </div>
 
-      {/* Mode cards */}
+      {/* Game Mode selection cards */}
       <div className="hm-modes">
         {isSignedIn ? (
           <>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={0.9} chaos={0.08} borderRadius={20} hoverOnly={true}>
               <ModeCard
+                icon="⚡"
                 title="Solo Practice"
-                desc="Train your speed & accuracy alone"
+                desc="Sharpen speed, accuracy & keystroke heatmaps alone"
                 onClick={() => navigate("/solo")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={1} chaos={0.1} borderRadius={20} hoverOnly={true}>
               <ModeCard
+                icon="🏎️"
                 title="Play Online"
-                desc="Match with a random opponent"
+                desc="Instant 1v1 matchmaking against random opponents"
                 featured
+                badge="POPULAR"
                 onClick={() => navigate("/online")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={0.9} chaos={0.08} borderRadius={20} hoverOnly={true}>
               <ModeCard
-                title="Play with Friends"
-                desc="Race others in custom rooms"
+                icon="🏁"
+                title="Custom Rooms"
+                desc="Create or join private race lobbies with friends"
                 onClick={() => navigate("/lobby")}
               />
             </ElectricBorder>
           </>
         ) : (
           <>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={0.9} chaos={0.08} borderRadius={20} hoverOnly={true}>
               <ModeCard
+                icon="⚡"
                 title="Solo Practice"
-                desc="Train your speed & accuracy alone"
+                desc="Sharpen speed, accuracy & keystroke heatmaps alone"
                 onClick={() => handleGuestModeClick("/solo")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={1} chaos={0.1} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={1} chaos={0.1} borderRadius={20} hoverOnly={true}>
               <ModeCard
+                icon="🏎️"
                 title="Play Online"
-                desc="Match with a random opponent"
+                desc="Instant 1v1 matchmaking against random opponents"
                 featured
+                badge="POPULAR"
                 onClick={() => handleGuestModeClick("/online")}
               />
             </ElectricBorder>
-            <ElectricBorder color="#e5b700" speed={0.9} chaos={0.08} borderRadius={16} hoverOnly={true}>
+            <ElectricBorder color="#FFD700" speed={0.9} chaos={0.08} borderRadius={20} hoverOnly={true}>
               <ModeCard
-                title="Play with Friends"
-                desc="Race others in custom rooms"
+                icon="🏁"
+                title="Custom Rooms"
+                desc="Create or join private race lobbies with friends"
                 onClick={() => handleGuestModeClick("/lobby")}
               />
             </ElectricBorder>
@@ -166,23 +181,52 @@ function Home() {
         )}
       </div>
 
+      {/* Telemetry & Platform Highlights Grid */}
+      <section className="hm-telemetry" aria-label="Platform Telemetry Features">
+        <div className="hm-telemetry-header">
+          <span className="hm-telemetry-subtitle">ENGINE TELEMETRY</span>
+          <h2 className="hm-telemetry-title">Built for Peak Velocity & Precision</h2>
+        </div>
+        <div className="hm-telemetry-grid">
+          <div className="hm-telemetry-card">
+            <span className="hm-telemetry-stat-value">⚡ 100%</span>
+            <span className="hm-telemetry-stat-label">Real-Time Socket Sync</span>
+            <span className="hm-telemetry-stat-desc">Low-latency position broadcasting keeps multiplayer races in perfect sync.</span>
+          </div>
+          <div className="hm-telemetry-card">
+            <span className="hm-telemetry-stat-value">📈 Live</span>
+            <span className="hm-telemetry-stat-label">WPM & Key Heatmaps</span>
+            <span className="hm-telemetry-stat-desc">Track burst speed timelines, key latency, and error breakdown frame-by-frame.</span>
+          </div>
+          <div className="hm-telemetry-card">
+            <span className="hm-telemetry-stat-value">🏆 Global</span>
+            <span className="hm-telemetry-stat-label">Clerk & Supabase Auth</span>
+            <span className="hm-telemetry-stat-desc">Compete for the top spot on global leaderboard rankings with persistent stats.</span>
+          </div>
+        </div>
+      </section>
+
       {/* Guest CTA when not signed in */}
       {!isSignedIn && (
         <p className="hm-guest-hint">
-          Playing as guest — scores won't count toward leaderboard.{" "}
+          Playing as guest — scores won't count toward global rankings.{" "}
           <SignInButton mode="modal">
-            <span className="hm-inline-link">Sign in to save them.</span>
+            <span className="hm-inline-link">Sign in to claim your rank.</span>
           </SignInButton>
         </p>
       )}
 
-      {isSignedIn && (
-        <div className="hm-aux">
+      {/* Quick Navigation Pills */}
+      <div className="hm-aux">
+        {isSignedIn && (
           <button type="button" className="hm-aux-link" onClick={() => navigate("/stats")}>
-            📊 My Stats
+            📊 My Performance Stats
           </button>
-        </div>
-      )}
+        )}
+        <button type="button" className="hm-aux-link" onClick={() => navigate("/leaderboard")}>
+          🏆 Global Leaderboard
+        </button>
+      </div>
 
       {/* Guest username modal */}
       {guestTarget && (
